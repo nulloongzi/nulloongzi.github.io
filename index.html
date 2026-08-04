@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>누룽지 — nulloongzi</title>
+  <meta name="description" content="생활배구에 첫 물꼬를 트는 사람, 누룽지. 누룽지도(배구 동호회 지도)를 만듭니다.">
+  <!-- 커스텀 도메인 전환 후 사실이 되는 값. 전환 전에는 github.io로 접속해도 무해함 -->
+  <meta property="og:title" content="누룽지 — nulloongzi">
+  <meta property="og:description" content="생활배구에 첫 물꼬를 트는 사람. 누룽지도를 만듭니다.">
+  <meta property="og:url" content="https://nulloongzi.com/">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>">
+  <style>
+    :root {
+      --yellow: #fac710;
+      --brown: #8d6e63;
+      --dark: #4e342e;
+      --cream: #fff8e1;
+      --white: #fff;
+      --text: #3e2f2a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(255, 248, 225, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(141, 110, 99, 0.15);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+    .wordmark { font-weight: 800; font-size: 1.1rem; color: var(--dark); text-decoration: none; }
+    .wordmark span { color: var(--brown); font-weight: 500; }
+    #langToggle {
+      border: 1.5px solid var(--brown); background: transparent; color: var(--brown);
+      border-radius: 999px; padding: 4px 14px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+    }
+    #langToggle:hover { background: var(--brown); color: var(--white); }
+
+    .hero { padding: 72px 0 56px; text-align: center; }
+    .avatar {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: var(--yellow); display: flex; align-items: center; justify-content: center;
+      font-size: 56px; margin: 0 auto 24px;
+      box-shadow: 0 8px 24px rgba(250, 199, 16, 0.35);
+    }
+    .hero h1 { font-size: 2rem; color: var(--dark); margin-bottom: 6px; }
+    .hero .romanized { color: var(--brown); font-size: 1rem; font-weight: 500; margin-bottom: 18px; }
+    .hero .tagline { font-size: 1.15rem; max-width: 480px; margin: 0 auto; }
+
+    section { padding: 40px 0; }
+    h2 {
+      font-size: 1.3rem; color: var(--dark); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    h2::after { content: ""; flex: 1; height: 2px; background: rgba(250, 199, 16, 0.5); border-radius: 2px; }
+
+    .about p { margin-bottom: 12px; }
+
+    .card {
+      background: var(--white); border-radius: 16px; padding: 24px;
+      margin-bottom: 16px; border: 1px solid rgba(141, 110, 99, 0.12);
+      box-shadow: 0 2px 8px rgba(78, 52, 46, 0.05);
+    }
+    .card h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .badge {
+      font-size: 0.7rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+      background: var(--yellow); color: var(--dark); white-space: nowrap;
+    }
+    .badge.soon { background: rgba(141, 110, 99, 0.15); color: var(--brown); }
+    .card .desc { margin: 10px 0 16px; }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 999px; text-decoration: none;
+      font-weight: 700; font-size: 0.9rem; transition: transform .12s, box-shadow .12s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(78, 52, 46, 0.15); }
+    .btn.primary { background: var(--yellow); color: var(--dark); }
+    .btn.secondary { background: var(--dark); color: var(--white); }
+    .btn.ghost { border: 1.5px solid var(--brown); color: var(--brown); }
+
+    footer {
+      text-align: center; padding: 48px 0 40px; color: var(--brown); font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+      .hero { padding: 52px 0 40px; }
+      .hero h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="wordmark" href="/">누룽지 <span>nulloongzi</span></a>
+      <button id="langToggle" type="button">EN</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <!-- TODO: 실제 프로필 사진으로 교체 (avatar div를 <img>로) -->
+      <div class="avatar">🏐</div>
+      <h1>누룽지</h1>
+      <div class="romanized">nulloongzi</div>
+      <p class="tagline" data-ko="소개해줄 친구가 없어도, 집 근처에서 배구를 시작할 수 있게. 생활배구에 첫 물꼬를 트는 것들을 만듭니다."
+         data-en="Helping people start playing volleyball near home — no insider connections needed. I build things that open the first door into grassroots volleyball in Korea.">
+        소개해줄 친구가 없어도, 집 근처에서 배구를 시작할 수 있게. 생활배구에 첫 물꼬를 트는 것들을 만듭니다.</p>
+    </div>
+
+    <section class="about">
+      <h2 data-ko="소개" data-en="About">소개</h2>
+      <p data-ko="배구 코트에서는 '누룽지'라는 이름으로 불립니다. 생활체육 배구는 첫 연결이 어렵지, 한번 트이면 알아서 이어집니다. 그 첫 물꼬가 '누구를 아는가'라는 운에 달려 있지 않도록, 운을 서비스로 바꾸는 일을 합니다."
+         data-en="On the volleyball court, I go by &quot;Nulloongzi&quot; (scorched rice — warm and welcoming). In Korean grassroots volleyball, the hardest part is the first connection; once you're in, everything flows. I turn that first connection from luck into a service.">
+        배구 코트에서는 '누룽지'라는 이름으로 불립니다. 생활체육 배구는 첫 연결이 어렵지, 한번 트이면 알아서 이어집니다. 그 첫 물꼬가 '누구를 아는가'라는 운에 달려 있지 않도록, 운을 서비스로 바꾸는 일을 합니다.</p>
+    </section>
+
+    <section class="projects">
+      <h2 data-ko="프로젝트" data-en="Projects">프로젝트</h2>
+
+      <div class="card">
+        <h3>🗺️ <span data-ko="누룽지도" data-en="Nulloongzi-do (Volleyball Map)">누룽지도</span>
+          <span class="badge" data-ko="운영 중" data-en="Live">운영 중</span></h3>
+        <p class="desc" data-ko="한국 배구 동호회 찾기 지도. 지역·요일·레벨로 찾고, 클럽에 바로 연락하고, 픽업 게임까지. 한국어·영어 지원."
+           data-en="A map of volleyball clubs across Korea. Search by region, day, and level, contact clubs directly, and find pickup games. Available in Korean and English.">
+          한국 배구 동호회 찾기 지도. 지역·요일·레벨로 찾고, 클럽에 바로 연락하고, 픽업 게임까지. 한국어·영어 지원.</p>
+        <div class="links">
+          <!-- 지도 도메인 전환(do.nulloongzi.com) 후 href만 바꾸면 됨 -->
+          <a class="btn primary" href="https://nulloongzi.github.io/null_oongzi-do/" data-ko="웹에서 열기" data-en="Open the map">웹에서 열기</a>
+          <a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.nulloongzi.nulloongzido" data-ko="Google Play" data-en="Google Play">Google Play</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🤖 <span data-ko="AI 심판" data-en="AI Referee">AI 심판</span>
+          <span class="badge soon" data-ko="준비 중" data-en="Coming soon">준비 중</span></h3>
+        <p class="desc" data-ko="준비 중인 다음 프로젝트입니다. 곧 소개할게요."
+           data-en="The next project, currently in the works. Details coming soon.">
+          준비 중인 다음 프로젝트입니다. 곧 소개할게요.</p>
+      </div>
+    </section>
+
+    <section class="contact">
+      <h2 data-ko="연락" data-en="Contact">연락</h2>
+      <p data-ko="배구, 협업, 클럽 등록 문의 모두 환영합니다."
+         data-en="Volleyball, collaboration, or club registration — all welcome.">
+        배구, 협업, 클럽 등록 문의 모두 환영합니다.</p>
+      <div class="links" style="margin-top:16px" id="contactLinks"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span data-ko="© 누룽지 · 밥은 먹고 다니냐" data-en="© nulloongzi">© 누룽지 · 밥은 먹고 다니냐</span>
+  </footer>
+
+  <script>
+    // ── 설정: 채워지면 버튼이 자동으로 나타난다 ──
+    // TODO: 인스타 핸들 채우기 (예: "https://www.instagram.com/핸들")
+    var CONTACT = {
+      instagram: "",   // 비워두면 버튼 미표시
+      email: ""        // 예: "mailto:hello@nulloongzi.com"
+    };
+
+    (function renderContacts() {
+      var box = document.getElementById("contactLinks");
+      if (CONTACT.instagram) {
+        var ig = document.createElement("a");
+        ig.className = "btn ghost";
+        ig.href = CONTACT.instagram;
+        ig.textContent = "Instagram";
+        box.appendChild(ig);
+      }
+      if (CONTACT.email) {
+        var em = document.createElement("a");
+        em.className = "btn ghost";
+        em.href = CONTACT.email;
+        em.textContent = "Email";
+        box.appendChild(em);
+      }
+      if (!CONTACT.instagram && !CONTACT.email) {
+        document.querySelector(".contact").style.display = "none";
+      }
+    })();
+
+    // ── KO/EN 토글 (지도 앱과 같은 data-속성 방식) ──
+    var lang = "ko";
+    var toggle = document.getElementById("langToggle");
+    toggle.addEventListener("click", function () {
+      lang = lang === "ko" ? "en" : "ko";
+      document.documentElement.lang = lang;
+      toggle.textContent = lang === "ko" ? "EN" : "한국어";
+      document.querySelectorAll("[data-ko]").forEach(function (el) {
+        el.innerHTML = el.getAttribute("data-" + lang);
+      });
+    });
+  </script>
+</body>
+</html>
