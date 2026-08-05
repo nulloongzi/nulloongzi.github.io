@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>누룽지 랠리 — 룩 시안 (톤 셰이딩 + POV 손 + 타이포)</title>
+<style>
+  :root {
+    --yellow: #fac710; --gold: #c9971c; --brown: #8d6e63;
+    --dark: #4e342e; --cream: #fff8e1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, "Apple SD Gothic Neo", sans-serif;
+    background: var(--cream); overflow: hidden; width: 100vw; height: 100vh;
+  }
+  #stage { position: fixed; inset: 0; z-index: 0; }
+
+  /* 스피드라인 (스파이크) */
+  #speedlines { position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.55; }
+
+  /* POV 손 오버레이 */
+  .hand { position: fixed; z-index: 3; pointer-events: none; opacity: 0.72; }
+  #hand-reach { left: -4vw; top: 26vh; width: 34vw; transform: rotate(18deg); }
+  #hand-fist { right: -6vw; bottom: -6vh; width: 52vw; transform: rotate(-14deg); }
+  #hand-tossL { left: 2vw; bottom: -8vh; width: 44vw; transform: rotate(14deg); }
+  #hand-tossR { right: 2vw; bottom: -8vh; width: 44vw; transform: rotate(-14deg) scaleX(-1); }
+
+  /* 장면 결합 타이포그래피 (박스 없음) */
+  .typo {
+    position: fixed; z-index: 4; left: 7vw; right: 7vw; pointer-events: none;
+    word-break: keep-all;
+    text-shadow: 0 2px 18px rgba(255,248,225,.95), 0 0 40px rgba(255,248,225,.8);
+  }
+  .typo.bottom { bottom: 9vh; }
+  .typo.middle { top: 54vh; }
+  .typo .q {
+    font-size: .95rem; font-weight: 700; color: var(--brown);
+    letter-spacing: .02em; margin-bottom: 12px;
+  }
+  .typo .q::before { content: "Q. "; color: var(--gold); font-weight: 800; }
+  .typo .line {
+    font-size: clamp(1.5rem, 6vw, 2.6rem); font-weight: 700;
+    color: var(--dark); line-height: 1.35;
+  }
+  .typo .hit {
+    display: block; margin-top: 6px;
+    font-size: clamp(2.2rem, 9.5vw, 4.2rem); font-weight: 800;
+    color: var(--gold); letter-spacing: -0.01em; line-height: 1.2;
+  }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<!-- 스피드라인: 방사형 집중선 (가장자리→중심, 중심은 비움) -->
+<svg id="speedlines" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style="display:none">
+  <g id="sl" fill="#4e342e"></g>
+</svg>
+
+<!-- POV 손: 뻗은 손 (스파이크 - 조준) -->
+<svg id="hand-reach" class="hand" viewBox="0 0 220 300" style="display:none">
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="72" y="150" width="76" height="150" rx="30"/>              <!-- 손목/팔 -->
+    <ellipse cx="110" cy="150" rx="58" ry="52"/>                        <!-- 손바닥 -->
+    <rect x="38" y="52" width="26" height="98" rx="13" transform="rotate(-16 51 101)"/>
+    <rect x="72" y="34" width="27" height="112" rx="13" transform="rotate(-5 85 90)"/>
+    <rect x="106" y="30" width="28" height="118" rx="14"/>
+    <rect x="140" y="40" width="26" height="106" rx="13" transform="rotate(7 153 93)"/>
+    <rect x="168" y="82" width="24" height="76" rx="12" transform="rotate(38 180 120)"/>  <!-- 엄지 -->
+  </g>
+</svg>
+
+<!-- POV 손: 당긴 주먹 (스파이크 - 도움닫기) -->
+<svg id="hand-fist" class="hand" viewBox="0 0 300 300" style="display:none">
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="120" y="150" width="120" height="170" rx="46" transform="rotate(-28 180 235)"/> <!-- 팔뚝 -->
+    <circle cx="128" cy="128" r="66"/>                                   <!-- 주먹 -->
+    <rect x="66" y="86" width="34" height="46" rx="17" transform="rotate(-10 83 109)"/>
+    <rect x="96" y="66" width="34" height="46" rx="17" transform="rotate(-4 113 89)"/>
+    <rect x="128" y="62" width="34" height="46" rx="17" transform="rotate(3 145 85)"/>
+    <rect x="158" y="70" width="32" height="44" rx="16" transform="rotate(10 174 92)"/>
+    <ellipse cx="86" cy="160" rx="24" ry="18" transform="rotate(-24 86 160)"/> <!-- 엄지 -->
+  </g>
+</svg>
+
+<!-- POV 손: 토스 (양손 세트) -->
+<svg id="hand-tossL" class="hand" viewBox="0 0 220 300" style="display:none">
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="76" y="160" width="72" height="140" rx="30" transform="rotate(10 112 230)"/>
+    <ellipse cx="108" cy="152" rx="56" ry="50"/>
+    <rect x="34" y="60" width="26" height="96" rx="13" transform="rotate(-24 47 108)"/>
+    <rect x="68" y="40" width="27" height="110" rx="13" transform="rotate(-12 81 95)"/>
+    <rect x="104" y="34" width="28" height="116" rx="14" transform="rotate(-2 118 92)"/>
+    <rect x="138" y="42" width="26" height="104" rx="13" transform="rotate(10 151 94)"/>
+    <rect x="164" y="84" width="24" height="74" rx="12" transform="rotate(42 176 121)"/>
+  </g>
+</svg>
+<svg id="hand-tossR" class="hand" viewBox="0 0 220 300" style="display:none">
+  <use href="#hand-tossL-g"/>
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="76" y="160" width="72" height="140" rx="30" transform="rotate(10 112 230)"/>
+    <ellipse cx="108" cy="152" rx="56" ry="50"/>
+    <rect x="34" y="60" width="26" height="96" rx="13" transform="rotate(-24 47 108)"/>
+    <rect x="68" y="40" width="27" height="110" rx="13" transform="rotate(-12 81 95)"/>
+    <rect x="104" y="34" width="28" height="116" rx="14" transform="rotate(-2 118 92)"/>
+    <rect x="138" y="42" width="26" height="104" rx="13" transform="rotate(10 151 94)"/>
+    <rect x="164" y="84" width="24" height="74" rx="12" transform="rotate(42 176 121)"/>
+  </g>
+</svg>
+
+<!-- 타이포: 스파이크 -->
+<div class="typo middle" id="typo-spike" style="display:none">
+  <div class="q">한국 배구판에 하고 싶은 말은?</div>
+  <div class="line">배구도 그랬으면 좋겠어요.</div>
+  <span class="hit">언제 어디서든.</span>
+</div>
+
+<!-- 타이포: 토스 -->
+<div class="typo bottom" id="typo-toss" style="display:none">
+  <div class="q">그런데 왜 지도까지 만들었어요?</div>
+  <div class="line">그 DM에 하나하나 답하다가 —</div>
+  <span class="hit">아, 지도를 만들어야겠다.</span>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./assets/vendor/three.module.min.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OutlineEffect } from './assets/vendor/OutlineEffect.js';
+
+var SCENE = new URLSearchParams(location.search).get('scene') || 'spike';
+
+var COL = {
+  cream: 0xfff8e1, wall: 0xf3e2b8, window: 0xfffbe8,
+  wood: 0xcfa672, zoneBack: 0xfde1a0, zoneFront: 0xf6b83d,
+  line: 0xffffff, dark: 0x4e342e, brown: 0x8d6e63, yellow: 0xfac710, urgent: 0xff7043
+};
+
+var renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('stage').appendChild(renderer.domElement);
+
+var effect = new OutlineEffect(renderer, { defaultThickness: 0.004, defaultColor: [0.24, 0.16, 0.13] });
+
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(COL.cream);
+
+var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 120);
+
+// ── 조명 (톤 셰이딩용: 방향 하나 + 넉넉한 환경광) ──
+scene.add(new THREE.AmbientLight(0xfff4d6, 1.6));
+var sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(8, 14, 6);
+scene.add(sun);
+
+// ── 3단계 그라디언트 맵 (셀 밴드) ──
+var gCanvas = document.createElement('canvas');
+gCanvas.width = 4; gCanvas.height = 1;
+var gc = gCanvas.getContext('2d');
+[100, 160, 235, 255].forEach(function (v, i) { gc.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; gc.fillRect(i, 0, 1, 1); });
+var gradientMap = new THREE.CanvasTexture(gCanvas);
+gradientMap.minFilter = THREE.NearestFilter;
+gradientMap.magFilter = THREE.NearestFilter;
+
+function tmat(color, opts) {
+  var m = new THREE.MeshToonMaterial(Object.assign({ color: color, gradientMap: gradientMap }, opts || {}));
+  return m;
+}
+
+// ── 체육관: 벽 + 창 + 천장 ──
+var backWall = new THREE.Mesh(new THREE.PlaneGeometry(80, 14), tmat(COL.wall));
+backWall.position.set(0, 7, -24);
+scene.add(backWall);
+for (var wi = 0; wi < 4; wi++) {
+  var win = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.6), new THREE.MeshBasicMaterial({ color: COL.window }));
+  win.position.set(-15 + wi * 10, 8.6, -23.9);
+  scene.add(win);
+}
+var sideWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 14), tmat(0xefdcb0));
+sideWall.rotation.y = -Math.PI / 2;
+sideWall.position.set(14, 7, 0);
+scene.add(sideWall);
+var ceiling = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), tmat(0xf9efd2));
+ceiling.rotation.x = Math.PI / 2;
+ceiling.position.y = 10.5;
+scene.add(ceiling);
+for (var bi = 0; bi < 5; bi++) {
+  var beam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 40), tmat(0xd9c08b));
+  beam.position.set(-12 + bi * 6, 10.2, -2);
+  scene.add(beam);
+}
+
+// ── 바닥/코트 ──
+var wood = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), tmat(COL.wood));
+wood.rotation.x = -Math.PI / 2;
+scene.add(wood);
+function zone(w, d, x, z, c) {
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), tmat(c));
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.02, z);
+  scene.add(m);
+}
+zone(9, 6, 0, 6, COL.zoneBack); zone(9, 3, 0, 1.5, COL.zoneFront);
+zone(9, 3, 0, -1.5, COL.zoneFront); zone(9, 6, 0, -6, COL.zoneBack);
+function cline(w, d, x, z) {
+  var m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), tmat(COL.line));
+  m.position.set(x, 0.035, z);
+  scene.add(m);
+}
+cline(0.12, 18.1, -4.5, 0); cline(0.12, 18.1, 4.5, 0);
+cline(9.1, 0.12, 0, 9); cline(9.1, 0.12, 0, -9);
+cline(9.1, 0.12, 0, 3); cline(9.1, 0.12, 0, -3); cline(9.1, 0.12, 0, 0);
+
+// ── 네트 ──
+[-5.1, 5.1].forEach(function (x) {
+  var p = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.55, 10), tmat(COL.dark));
+  p.position.set(x, 1.275, 0);
+  scene.add(p);
+});
+var band = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.16, 0.05), tmat(COL.line));
+band.position.set(0, 2.42, 0);
+scene.add(band);
+var meshCanvas = document.createElement('canvas');
+meshCanvas.width = 1024; meshCanvas.height = 128;
+var mc = meshCanvas.getContext('2d');
+mc.strokeStyle = 'rgba(255,253,246,0.85)'; mc.lineWidth = 1.5;
+for (var gx = 0; gx <= 1024; gx += 10) { mc.beginPath(); mc.moveTo(gx, 0); mc.lineTo(gx, 128); mc.stroke(); }
+for (var gy = 0; gy <= 128; gy += 10) { mc.beginPath(); mc.moveTo(0, gy); mc.lineTo(1024, gy); mc.stroke(); }
+var netMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(10.2, 1.0),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(meshCanvas), transparent: true, side: THREE.DoubleSide })
+);
+netMesh.position.set(0, 1.85, 0);
+scene.add(netMesh);
+var antCanvas = document.createElement('canvas');
+antCanvas.width = 8; antCanvas.height = 64;
+var ac = antCanvas.getContext('2d');
+for (var s = 0; s < 8; s++) { ac.fillStyle = s % 2 ? '#fffdf6' : '#ff7043'; ac.fillRect(0, s * 8, 8, 8); }
+[-4.5, 4.5].forEach(function (x) {
+  var a = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.7, 8),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(antCanvas) }));
+  a.position.set(x, 2.97, 0);
+  scene.add(a);
+});
+
+// ── 공 (클래식 스월 + 톤) ──
+var ballCanvas = document.createElement('canvas');
+ballCanvas.width = 512; ballCanvas.height = 256;
+var bc = ballCanvas.getContext('2d');
+bc.fillStyle = '#fffdf6'; bc.fillRect(0, 0, 512, 256);
+bc.strokeStyle = '#a58974'; bc.lineWidth = 5; bc.lineCap = 'round';
+for (var k = 0; k < 4; k++) {
+  var ox = k * 128;
+  bc.beginPath(); bc.moveTo(ox, 40); bc.bezierCurveTo(ox + 50, 90, ox + 78, 160, ox + 64, 236); bc.stroke();
+  bc.beginPath(); bc.moveTo(ox + 64, 20); bc.bezierCurveTo(ox + 110, 70, ox + 120, 150, ox + 128, 210); bc.stroke();
+}
+var ball = new THREE.Mesh(
+  new THREE.SphereGeometry(0.35, 24, 18),
+  tmat(0xffffff, { map: new THREE.CanvasTexture(ballCanvas) })
+);
+scene.add(ball);
+
+// ── 장면 세팅 ──
+function show(id) { document.getElementById(id).style.display = 'block'; }
+
+if (SCENE === 'spike') {
+  // 스파이커 시점: 공중, 네트 너머 상대 코트를 내려다봄
+  camera.position.set(-1.6, 3.5, -2.8);
+  camera.lookAt(0.6, -0.2, 9);
+  ball.position.set(-0.35, 2.45, 1.4);
+  ball.rotation.z = 0.6;
+  show('speedlines'); show('hand-reach'); show('hand-fist'); show('typo-spike');
+  // 스피드라인 생성
+  var sl = document.getElementById('sl');
+  for (var i = 0; i < 46; i++) {
+    var ang = (i / 46) * Math.PI * 2 + (i % 3) * 0.03;
+    var cxr = 50 + Math.cos(ang) * 74, cyr = 50 + Math.sin(ang) * 74;
+    var r1 = 26 + (i % 5) * 3.5;
+    var x1 = 50 + Math.cos(ang) * r1, y1 = 50 + Math.sin(ang) * r1;
+    var wHalf = 0.5 + (i % 4) * 0.28;
+    var perp = ang + Math.PI / 2;
+    var px = Math.cos(perp) * wHalf, py = Math.sin(perp) * wHalf;
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    p.setAttribute('points',
+      (cxr + px) + ',' + (cyr + py) + ' ' + (cxr - px) + ',' + (cyr - py) + ' ' + x1 + ',' + y1);
+    p.setAttribute('opacity', String(0.35 + (i % 3) * 0.18));
+    sl.appendChild(p);
+  }
+} else {
+  // 세터 시점: 하늘을 올려다보는 토스
+  camera.position.set(0.5, 1.55, -1.0);
+  camera.lookAt(-0.4, 6.5, -1.6);
+  ball.position.set(-0.15, 3.9, -1.15);
+  ball.rotation.z = 1.1;
+  show('hand-tossL'); show('hand-tossR'); show('typo-toss');
+}
+
+effect.render(scene, camera);
+window.addEventListener('resize', function () {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  effect.render(scene, camera);
+});
+</script>
+</body>
+</html>
