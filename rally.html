@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>누룽지 — 랠리 인터뷰 (프로토타입)</title>
+<style>
+  :root {
+    --yellow: #fac710;
+    --brown: #8d6e63;
+    --dark: #4e342e;
+    --cream: #fff8e1;
+    --text: #3e2f2a;
+    --urgent: #ff7043;
+    --court-back: #fde3a8;   /* 후위 존 */
+    --court-front: #f6c14a;  /* 전위(3m) 존 — 레퍼런스의 진한 존 */
+    --court-out: #f3e7c3;    /* 코트 밖 */
+    --line: #fffdf6;
+    --floor-y: 92;           /* vh 기준 바닥 높이 (JS와 공유) */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ══ 코트 (항상 떠 있는 무대) ══ */
+  #court { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+  /* 바닥: 측면에서 본 존 색 분리 (아웃 | 후위 | 전위 ‖ 전위 | 후위 | 아웃) */
+  .floor-band {
+    position: absolute; left: 0; right: 0;
+    top: 92vh; height: 8vh;
+    background: linear-gradient(90deg,
+      var(--court-out) 0 6%,
+      var(--court-back) 6% 31%,
+      var(--court-front) 31% 50%,
+      var(--court-front) 50% 69%,
+      var(--court-back) 69% 94%,
+      var(--court-out) 94% 100%);
+    box-shadow: 0 -2px 10px rgba(93,64,55,0.08);
+  }
+  .floor-band .mark {
+    position: absolute; top: 0; width: 3px; height: 100%;
+    background: var(--line); transform: translateX(-50%);
+  }
+  .floor-band .lbl {
+    position: absolute; top: 1.2vh; font-size: .62rem; font-weight: 700;
+    color: rgba(78,52,46,.45); transform: translateX(-50%); letter-spacing: .05em;
+  }
+
+  /* 네트: 세로 밴드 (상단 흰 밴드 + 메시) + 포스트 + 안테나 */
+  .net {
+    position: absolute; left: 50vw; top: 66vh; height: 26vh; width: 26px;
+    transform: translateX(-50%);
+  }
+  .net .post {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 0; width: 7px; height: 100%;
+    background: var(--dark); border-radius: 4px 4px 0 0;
+  }
+  .net .mesh {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,253,246,.9) 0 2px, transparent 2px 7px),
+      repeating-linear-gradient(90deg, rgba(255,253,246,.9) 0 2px, transparent 2px 7px);
+    border-left: 2px solid var(--line); border-right: 2px solid var(--line);
+  }
+  .net .band {
+    position: absolute; left: -3px; right: -3px; top: -2px; height: 9px;
+    background: var(--line); border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(93,64,55,.2);
+  }
+  .net .antenna {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: -9vh; width: 5px; height: 9vh; border-radius: 3px;
+    background: repeating-linear-gradient(0deg, var(--urgent) 0 1.5vh, #fffdf6 1.5vh 3vh);
+  }
+
+  /* 스틱맨 선수들 */
+  .player {
+    position: absolute; bottom: 8vh; width: 54px; height: 88px;
+    transform: translateX(-50%);
+  }
+  .player svg { width: 100%; height: 100%; overflow: visible; }
+  .player .tag {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    margin-top: .6vh; font-size: .62rem; font-weight: 800; letter-spacing: .08em;
+    color: rgba(78,52,46,.5); white-space: nowrap; opacity: 0; transition: opacity .4s;
+  }
+  .player.active .tag { opacity: 1; color: var(--dark); }
+  .player.active svg { animation: hop 1s ease-in-out infinite; }
+  @keyframes hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.2vh); } }
+
+  /* 밥그릇 (착지 지점, 공보다 위 레이어) */
+  #bowl {
+    position: absolute; left: 5.5vw; top: 92vh; width: 110px; height: 60px;
+    transform: translate(-50%, -88%); z-index: 7;
+  }
+
+  /* ══ 공 ══ */
+  #ball {
+    position: fixed; left: 0; top: 0; z-index: 6;
+    width: 58px; height: 58px;
+    pointer-events: none; will-change: transform;
+    filter: drop-shadow(0 8px 14px rgba(93,64,55,0.28));
+  }
+
+  /* ══ 텍스트 섹션 ══ */
+  section {
+    min-height: 100vh; position: relative; z-index: 3;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    padding: 10vh 24px 36vh;
+  }
+  .inner { max-width: 620px; margin: 0 auto; width: 100%; }
+
+  .phase {
+    font-size: .85rem; font-weight: 800; letter-spacing: .18em;
+    color: var(--brown); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .phase::before { content: ""; width: 26px; height: 3px; background: var(--yellow); border-radius: 2px; }
+  .phase-ko { font-size: clamp(2rem, 6.4vw, 3.1rem); font-weight: 800; color: var(--dark); line-height: 1.2; margin-bottom: 24px; }
+
+  .q { font-weight: 700; color: var(--brown); margin-bottom: 14px; font-size: 1.05rem; }
+  .q::before { content: "Q. "; color: var(--yellow); -webkit-text-stroke: .5px var(--brown); }
+  .a { font-size: 1.1rem; }
+  .a p { margin-bottom: 14px; }
+  .a strong { color: var(--dark); }
+
+  .inner { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .inner.on { opacity: 1; transform: none; }
+
+  .hero { text-align: center; justify-content: center; padding-bottom: 30vh; }
+  .hero h1 { font-size: clamp(2.4rem, 8vw, 3.6rem); font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+  .hero .sub { color: var(--brown); font-size: 1.05rem; margin-bottom: 22px; }
+  .hero .hint { margin-top: 5vh; color: var(--brown); font-size: .9rem; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+  .spike-line { font-size: clamp(1.5rem, 4.6vw, 2.2rem); font-weight: 800; color: var(--dark); margin-top: 16px; }
+  .spike-line em { font-style: normal; background: linear-gradient(transparent 62%, var(--yellow) 62%); }
+
+  .floor-section { text-align: center; }
+  .floor-section .a { max-width: 480px; margin: 0 auto 36px; }
+  .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; padding: 10px 22px;
+    border-radius: 999px; text-decoration: none; font-weight: 700; font-size: .95rem;
+    pointer-events: auto;
+  }
+  .btn.primary { background: var(--yellow); color: var(--dark); }
+  .btn.ghost { border: 1.5px solid var(--brown); color: var(--brown); }
+  footer { text-align: center; padding: 20px 0 30px; color: var(--brown); font-size: .85rem; position: relative; z-index: 3; }
+
+  @media (max-width: 520px) {
+    .player { width: 42px; height: 70px; }
+    #ball { width: 46px; height: 46px; }
+    #bowl { width: 88px; height: 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #ball, .hero .hint { display: none; }
+    .player.active svg { animation: none; }
+    .inner { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ══ 코트 무대 ══ -->
+  <div id="court">
+    <div class="floor-band">
+      <div class="mark" style="left:6%"></div>
+      <div class="mark" style="left:31%"></div>
+      <div class="mark" style="left:50%; width:0"></div>
+      <div class="mark" style="left:69%"></div>
+      <div class="mark" style="left:94%"></div>
+      <div class="lbl" style="left:31%">3m</div>
+      <div class="lbl" style="left:69%">3m</div>
+    </div>
+
+    <div class="net">
+      <div class="post"></div>
+      <div class="mesh"></div>
+      <div class="band"></div>
+      <div class="antenna"></div>
+    </div>
+
+    <!-- 스틱맨: 서버(좌) / 리시버(우후위) / 세터(우전위) / 스파이커(우, 네트 앞) -->
+    <div class="player" id="p-serve" style="left:14vw">
+      <svg viewBox="0 0 54 88" fill="none" stroke="#4e342e" stroke-width="4" stroke-linecap="round">
+        <circle cx="27" cy="14" r="9" fill="#fff8e1"/>
+        <path d="M27 23 L27 55"/>
+        <path d="M27 30 L10 12"/>          <!-- 서브 토스하는 팔 (위로) -->
+        <path d="M27 34 L42 44"/>
+        <path d="M27 55 L16 84"/><path d="M27 55 L38 84"/>
+      </svg>
+      <div class="tag">SERVE</div>
+    </div>
+    <div class="player" id="p-receive" style="left:80vw">
+      <svg viewBox="0 0 54 88" fill="none" stroke="#4e342e" stroke-width="4" stroke-linecap="round">
+        <circle cx="24" cy="22" r="9" fill="#fff8e1"/>
+        <path d="M24 31 L28 58"/>
+        <path d="M26 38 L6 52"/><path d="M26 40 L8 55"/>   <!-- 두 팔 모아 낮게 -->
+        <path d="M28 58 L14 84"/><path d="M28 58 L42 82"/>
+      </svg>
+      <div class="tag">RECEIVE</div>
+    </div>
+    <div class="player" id="p-toss" style="left:60vw">
+      <svg viewBox="0 0 54 88" fill="none" stroke="#4e342e" stroke-width="4" stroke-linecap="round">
+        <circle cx="27" cy="16" r="9" fill="#fff8e1"/>
+        <path d="M27 25 L27 56"/>
+        <path d="M27 30 L14 6"/><path d="M27 30 L40 6"/>   <!-- 두 손 머리 위 -->
+        <path d="M27 56 L16 84"/><path d="M27 56 L38 84"/>
+      </svg>
+      <div class="tag">TOSS</div>
+    </div>
+    <div class="player" id="p-spike" style="left:55vw; bottom: 12vh">
+      <svg viewBox="0 0 54 88" fill="none" stroke="#4e342e" stroke-width="4" stroke-linecap="round">
+        <circle cx="24" cy="16" r="9" fill="#fff8e1"/>
+        <path d="M24 25 L28 54"/>
+        <path d="M25 30 L44 6"/>            <!-- 스윙 팔 -->
+        <path d="M25 34 L8 40"/>
+        <path d="M28 54 L14 70 L20 84"/><path d="M28 54 L40 68 L34 82"/>  <!-- 점프 다리 -->
+      </svg>
+      <div class="tag">SPIKE</div>
+    </div>
+
+    <!-- 밥그릇: 랠리의 종착지 -->
+    <svg id="bowl" viewBox="0 0 110 60">
+      <path d="M8 14 Q55 30 102 14 L96 40 Q90 54 55 54 Q20 54 14 40 Z" fill="#8d6e63"/>
+      <ellipse cx="55" cy="14" rx="47" ry="9" fill="#6d554c"/>
+      <path d="M40 56 L70 56 L66 60 L44 60 Z" fill="#7a6158"/>
+    </svg>
+  </div>
+
+  <!-- ══ 클래식 배구공 (흰 몸통 + 곡선 패널 라인 3조) ══ -->
+  <svg id="ball" viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <!-- 클래식 배구공: 중심을 도는 스월 곡선 3개 (옛날 흰 배구공 패널 라인) -->
+      <path id="swirl" d="M32 2 C 16 16, 16 40, 30 62" fill="none"
+            stroke="#8d6e63" stroke-width="2.8" stroke-linecap="round"/>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="#fffdf6" stroke="#d9c9a3" stroke-width="1.6"/>
+    <g clip-path="circle(29px at 32px 32px)">
+      <use href="#swirl"/>
+      <use href="#swirl" transform="rotate(120 32 32)"/>
+      <use href="#swirl" transform="rotate(240 32 32)"/>
+    </g>
+  </svg>
+
+  <!-- ══ 인터뷰 ══ -->
+  <section class="hero" data-phase="hero">
+    <div class="inner">
+      <h1>누룽지의 랠리</h1>
+      <div class="sub">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</div>
+      <div class="hint">스크롤하면 랠리가 시작됩니다 ↓</div>
+    </div>
+  </section>
+
+  <section data-phase="serve">
+    <div class="inner">
+      <div class="phase">Serve</div>
+      <div class="phase-ko">서브 — 시작</div>
+      <div class="q">배구, 어떻게 시작했어요?</div>
+      <div class="a">
+        <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
+        <p>만화처럼은 아니어도, <strong>친구들이랑 배구를 할 수 있다는 것 자체</strong>가 좋았어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="serve2">
+    <div class="inner">
+      <div class="q">왜 '누룽지'예요?</div>
+      <div class="a">
+        <p>한때 null(눌)이라는 이름으로 음악을 했었어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
+        <p>그 계정에 배구하는 걸 음악에 맞춰 일기처럼 올리다 보니, 어느새 코트에서 <strong>'누룽지'</strong>로 불리고 있더라고요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="receive">
+    <div class="inner">
+      <div class="phase">Receive</div>
+      <div class="phase-ko">리시브 — 받은 것</div>
+      <div class="q">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
+      <div class="a">
+        <p>새로운 사람 만나는 게 즐겁지 않던 시절이 있었어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
+        <p>제가 받은 환대는 플레이가 아니라 <strong>밥상에서</strong> 왔어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="toss">
+    <div class="inner">
+      <div class="phase">Toss</div>
+      <div class="phase-ko">토스 — 올려주는 것</div>
+      <div class="q">그런데 왜 지도까지 만들었어요?</div>
+      <div class="a">
+        <p>우연히 한 형 덕에 6인제를 시작했고, 그 형을 따라다니며 얼굴을 트니까 초대가 계속 이어졌어요. 어느새 제가 "어디서 운동할 수 있어요?"라는 DM을 받는 사람이 돼 있었죠. 그 DM에 하나하나 답하다가 — 아, <strong>지도를 만들어야겠다.</strong></p>
+        <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요. 연결이 성사된 걸 <strong>양쪽에서 확인하는 순간.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="spike">
+    <div class="inner">
+      <div class="phase">Spike</div>
+      <div class="phase-ko">스파이크 — 하고 싶은 말</div>
+      <div class="q">한국 배구판에 하고 싶은 말은?</div>
+      <div class="a">
+        <p>좀 폐쇄적이에요. 정보가 카페 안에 있으니 가입자가 아니면 시작조차 어렵죠. 풋살이나 농구는 집 근처에서 언제든 할 수 있잖아요.</p>
+        <p class="spike-line">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></p>
+      </div>
+      <div class="q" style="margin-top:36px">그래서 다음으로 준비하는 게?</div>
+      <div class="a">
+        <p>AI 심판이요. 9인제 하던 사람들이 6인제를 안 하게 되는 제일 큰 걸림돌이 <strong>로테이션</strong>이거든요. 규칙이 어려워서 못 즐기는 일이 없도록, 더 많은 사람이 6인제를 즐겼으면 해서 만들고 있어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="floor-section" data-phase="land">
+    <div class="inner">
+      <div class="q" style="text-align:center">여기까지 스크롤한 사람에게 바라는 게 있다면?</div>
+      <div class="a">
+        <p>배구를 더 사랑해줬으면 좋겠어요. 그리고 그냥 누룽지가 궁금했던 거라면 — <strong>그걸로 충분해요.</strong></p>
+      </div>
+      <div class="links">
+        <a class="btn primary" href="https://do.nulloongzi.com/">누룽지도 열어보기</a>
+        <a class="btn ghost" href="https://www.instagram.com/null_oongzi">Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 누룽지 · 밥은 먹고 다니냐</footer>
+
+<script>
+  // ══ 랠리 궤적 ══
+  // 좌표는 (vw%, vh%). 바닥 92, 네트 상단 66 (x=50에서 넘을 때 y<66이어야 함)
+  var FLOOR = 92, BOWL_X = 5.5;
+  var SEGMENTS = {
+    hero:    { type: 'bezier', A: [14, 74], C: [14, 74], B: [14, 74] },  // 서버 손 위 대기
+    serve:   { type: 'bezier', A: [14, 74], C: [32, 22], B: [58, 52] }, // 서브: 네트를 높게 넘김
+    serve2:  { type: 'bezier', A: [58, 52], C: [70, 62], B: [79, 76] }, // 낙하: 리시버에게
+    receive: { type: 'bezier', A: [79, 76], C: [78, 26], B: [62, 44] }, // 디그: 세터 쪽으로 올림
+    toss:    { type: 'bezier', A: [62, 44], C: [58, 12], B: [57, 30] }, // 높은 토스
+    spike:   { type: 'bezier', A: [57, 30], C: [52, 48], B: [32, FLOOR] }, // 강타: 네트 넘어 내리꽂힘
+    land:    { type: 'bounce' }                                          // 통통 → 밥그릇
+  };
+
+  // 착지 후 바운드: 왼쪽으로 이동하며 감쇠, 마지막에 밥그릇 안으로
+  var HOPS = [
+    { x0: 32, x1: 24, h: 16 },
+    { x0: 24, x1: 17.5, h: 9 },
+    { x0: 17.5, x1: 12.5, h: 4.5 },
+    { x0: 12.5, x1: 9, h: 2 },
+    { x0: 9, x1: BOWL_X, h: 3.5 }   // 마지막 홉: 그릇 테두리 넘어 안으로
+  ];
+
+  var ball = document.getElementById('ball');
+  var sections = [].slice.call(document.querySelectorAll('section'));
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var players = {
+    serve: document.getElementById('p-serve'),
+    serve2: document.getElementById('p-receive'),
+    receive: document.getElementById('p-receive'),
+    toss: document.getElementById('p-toss'),
+    spike: document.getElementById('p-spike')
+  };
+
+  function bezier(seg, t) {
+    var u = 1 - t;
+    return [
+      u*u*seg.A[0] + 2*u*t*seg.C[0] + t*t*seg.B[0],
+      u*u*seg.A[1] + 2*u*t*seg.C[1] + t*t*seg.B[1]
+    ];
+  }
+
+  function bouncePos(t) {
+    // t 0~1 → 홉들 순회 (수평 등속, 각 홉은 포물선). 마지막 0.12는 그릇 안 정착
+    var SETTLE = 0.12;
+    if (t >= 1 - SETTLE) return [BOWL_X, FLOOR - 4.5]; // 그릇 안
+    var tt = t / (1 - SETTLE);
+    var total = 0, spans = [];
+    HOPS.forEach(function (h) { var s = Math.abs(h.x1 - h.x0); spans.push(s); total += s; });
+    var d = tt * total;
+    for (var i = 0; i < HOPS.length; i++) {
+      if (d <= spans[i] || i === HOPS.length - 1) {
+        var k = spans[i] ? Math.min(1, d / spans[i]) : 1;
+        var h = HOPS[i];
+        var x = h.x0 + (h.x1 - h.x0) * k;
+        var y = FLOOR - h.h * 4 * k * (1 - k);
+        if (i === HOPS.length - 1) y = Math.min(y, FLOOR - 2); // 그릇 진입 높이 보정
+        return [x, y];
+      }
+      d -= spans[i];
+    }
+    return [BOWL_X, FLOOR - 4.5];
+  }
+
+  var activePhase = null;
+  function setActive(phase) {
+    if (phase === activePhase) return;
+    activePhase = phase;
+    Object.keys(players).forEach(function (k) { players[k].classList.remove('active'); });
+    if (players[phase]) players[phase].classList.add('active');
+  }
+
+  function update() {
+    if (reduced) return;
+    var vh = window.innerHeight, vw = window.innerWidth;
+    var y = window.scrollY + vh * 0.5;
+    var current = null, t = 0;
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i], top = s.offsetTop, h = s.offsetHeight;
+      if (y >= top && y < top + h) {
+        current = s.getAttribute('data-phase');
+        t = (y - top) / h;
+        break;
+      }
+    }
+    if (!current) { current = 'land'; t = 1; }
+    setActive(current);
+
+    var seg = SEGMENTS[current] || SEGMENTS.land;
+    var p = seg.type === 'bounce'
+      ? bouncePos(Math.min(1, Math.max(0, t)))
+      : bezier(seg, Math.min(1, Math.max(0, t)));
+
+    var size = ball.getBoundingClientRect().width || 58;
+    var px = p[0] / 100 * vw - size / 2;
+    var py = p[1] / 100 * vh - size / 2;
+    var rot = window.scrollY * 0.3;
+    var squash = '';
+    if (seg.type === 'bounce') {
+      rot = window.scrollY * 0.15;
+      if (t >= 0.88) { squash = ' scale(.92)'; rot = 0; } // 그릇 안 정착
+    }
+    ball.style.transform = 'translate(' + px + 'px,' + py + 'px) rotate(' + rot + 'deg)' + squash;
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('on'); });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.inner').forEach(function (el) { io.observe(el); });
+</script>
+</body>
+</html>
