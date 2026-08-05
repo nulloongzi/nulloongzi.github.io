@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>누룽지 — 페이지를 찾는 중…</title>
+  <!-- 옛 github.io 딥링크 안전망.
+       apex 커스텀 도메인의 301은 github.io/null_oongzi-do/<경로>를
+       nulloongzi.com/null_oongzi-do/<경로>로 보내는데, 이 레포엔 그 경로의 파일이
+       index.html 하나뿐이라 privacy.html 같은 하위 경로는 여기(404)로 떨어진다.
+       → 경로·쿼리를 보존해 do.nulloongzi.com으로 넘긴다.
+       (Play Console 개인정보처리방침 URL, 스토어/문서에 뿌린 딥링크 보호) -->
+  <script>
+    (function () {
+      var p = location.pathname;
+      var PREFIX = '/null_oongzi-do/';
+      if (p.indexOf(PREFIX) === 0) {
+        var rest = p.slice(PREFIX.length);
+        location.replace('https://do.nulloongzi.com/' + rest + location.search + location.hash);
+      }
+    })();
+  </script>
+  <style>
+    body { font-family: system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+           background: #fff8e1; color: #4e342e; display: flex; align-items: center;
+           justify-content: center; min-height: 90vh; margin: 0; text-align: center; }
+    a { color: #8d6e63; }
+  </style>
+</head>
+<body>
+  <div>
+    <p style="font-size:48px;margin:0 0 8px">🍚</p>
+    <p>찾는 페이지가 없어요.</p>
+    <p><a href="/">누룽지</a> · <a href="https://do.nulloongzi.com/">누룽지도</a></p>
+  </div>
+</body>
+</html>
