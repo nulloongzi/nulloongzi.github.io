@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>누룽지 — 랠리 인터뷰 3D (프로토타입)</title>
+<style>
+  :root {
+    --yellow: #fac710;
+    --brown: #8d6e63;
+    --dark: #4e342e;
+    --cream: #fff8e1;
+    --text: #3e2f2a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  #stage { position: fixed; inset: 0; z-index: 0; }
+  #stage canvas { display: block; }
+
+  section {
+    min-height: 100vh; position: relative; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 10vh 20px;
+  }
+  .inner {
+    max-width: 560px; margin: 0 auto; width: 100%;
+    background: rgba(255, 248, 225, 0.86);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    border-radius: 22px;
+    border: 1px solid rgba(141, 110, 99, 0.14);
+    padding: 30px 30px 26px;
+    box-shadow: 0 8px 32px rgba(93, 64, 55, 0.10);
+    opacity: 0; transform: translateY(24px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .inner.on { opacity: 1; transform: none; }
+
+  .phase {
+    font-size: .82rem; font-weight: 800; letter-spacing: .18em;
+    color: var(--brown); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .phase::before { content: ""; width: 26px; height: 3px; background: var(--yellow); border-radius: 2px; }
+  .phase-ko { font-size: clamp(1.7rem, 5.4vw, 2.5rem); font-weight: 800; color: var(--dark); line-height: 1.25; margin-bottom: 20px; }
+
+  .q { font-weight: 700; color: var(--brown); margin-bottom: 12px; font-size: 1.02rem; }
+  .q::before { content: "Q. "; color: var(--yellow); -webkit-text-stroke: .5px var(--brown); }
+  .a { font-size: 1.06rem; }
+  .a p { margin-bottom: 13px; }
+  .a p:last-child { margin-bottom: 0; }
+  .a strong { color: var(--dark); }
+
+  .hero-sec { text-align: center; }
+  .hero-sec .inner { background: transparent; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .hero-sec h1 { font-size: clamp(2.4rem, 8vw, 3.6rem); font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+  .hero-sec .sub { color: var(--brown); font-size: 1.05rem; }
+  .hero-sec .hint { margin-top: 46vh; color: var(--brown); font-size: .9rem; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+  .spike-line { font-size: clamp(1.4rem, 4.4vw, 2rem); font-weight: 800; color: var(--dark); margin-top: 14px; }
+  .spike-line em { font-style: normal; background: linear-gradient(transparent 62%, var(--yellow) 62%); }
+
+  .floor-section { text-align: center; }
+  .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; padding: 10px 22px;
+    border-radius: 999px; text-decoration: none; font-weight: 700; font-size: .95rem;
+  }
+  .btn.primary { background: var(--yellow); color: var(--dark); }
+  .btn.ghost { border: 1.5px solid var(--brown); color: var(--brown); }
+  footer { text-align: center; padding: 26px 0 34px; color: var(--brown); font-size: .85rem; position: relative; z-index: 2; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-sec .hint { animation: none; }
+    .inner { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<section class="hero-sec" data-phase="hero">
+  <div class="inner">
+    <h1>누룽지의 랠리</h1>
+    <div class="sub">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</div>
+    <div class="hint">스크롤하면 랠리가 시작됩니다 ↓</div>
+  </div>
+</section>
+
+<section data-phase="serve">
+  <div class="inner">
+    <div class="phase">Serve</div>
+    <div class="phase-ko">서브 — 시작</div>
+    <div class="q">배구, 어떻게 시작했어요?</div>
+    <div class="a">
+      <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
+      <p>만화처럼은 아니어도, <strong>친구들이랑 배구를 할 수 있다는 것 자체</strong>가 좋았어요.</p>
+    </div>
+  </div>
+</section>
+
+<section data-phase="serve2">
+  <div class="inner">
+    <div class="q">왜 '누룽지'예요?</div>
+    <div class="a">
+      <p>한때 null(눌)이라는 이름으로 음악을 했었어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
+      <p>그 계정에 배구하는 걸 음악에 맞춰 일기처럼 올리다 보니, 어느새 코트에서 <strong>'누룽지'</strong>로 불리고 있더라고요.</p>
+    </div>
+  </div>
+</section>
+
+<section data-phase="receive">
+  <div class="inner">
+    <div class="phase">Receive</div>
+    <div class="phase-ko">리시브 — 받은 것</div>
+    <div class="q">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
+    <div class="a">
+      <p>새로운 사람 만나는 게 즐겁지 않던 시절이 있었어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
+      <p>제가 받은 환대는 플레이가 아니라 <strong>밥상에서</strong> 왔어요.</p>
+    </div>
+  </div>
+</section>
+
+<section data-phase="toss">
+  <div class="inner">
+    <div class="phase">Toss</div>
+    <div class="phase-ko">토스 — 올려주는 것</div>
+    <div class="q">그런데 왜 지도까지 만들었어요?</div>
+    <div class="a">
+      <p>우연히 한 형 덕에 6인제를 시작했고, 그 형을 따라다니며 얼굴을 트니까 초대가 계속 이어졌어요. 어느새 제가 "어디서 운동할 수 있어요?"라는 DM을 받는 사람이 돼 있었죠. 그 DM에 하나하나 답하다가 — 아, <strong>지도를 만들어야겠다.</strong></p>
+      <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요. 연결이 성사된 걸 <strong>양쪽에서 확인하는 순간.</strong></p>
+    </div>
+  </div>
+</section>
+
+<section data-phase="spike">
+  <div class="inner">
+    <div class="phase">Spike</div>
+    <div class="phase-ko">스파이크 — 하고 싶은 말</div>
+    <div class="q">한국 배구판에 하고 싶은 말은?</div>
+    <div class="a">
+      <p>좀 폐쇄적이에요. 정보가 카페 안에 있으니 가입자가 아니면 시작조차 어렵죠. 풋살이나 농구는 집 근처에서 언제든 할 수 있잖아요.</p>
+      <p class="spike-line">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></p>
+    </div>
+    <div class="q" style="margin-top:30px">그래서 다음으로 준비하는 게?</div>
+    <div class="a">
+      <p>AI 심판이요. 9인제 하던 사람들이 6인제를 안 하게 되는 제일 큰 걸림돌이 <strong>로테이션</strong>이거든요. 규칙이 어려워서 못 즐기는 일이 없도록, 더 많은 사람이 6인제를 즐겼으면 해서 만들고 있어요.</p>
+    </div>
+  </div>
+</section>
+
+<section class="floor-section" data-phase="land">
+  <div class="inner">
+    <div class="q" style="text-align:center">여기까지 스크롤한 사람에게 바라는 게 있다면?</div>
+    <div class="a">
+      <p>배구를 더 사랑해줬으면 좋겠어요. 그리고 그냥 누룽지가 궁금했던 거라면 — <strong>그걸로 충분해요.</strong></p>
+    </div>
+    <div class="links">
+      <a class="btn primary" href="https://do.nulloongzi.com/">누룽지도 열어보기</a>
+      <a class="btn ghost" href="https://www.instagram.com/null_oongzi">Instagram</a>
+    </div>
+  </div>
+</section>
+
+<footer>© 누룽지 · 밥은 먹고 다니냐</footer>
+
+<script type="module">
+import * as THREE from './assets/vendor/three.module.min.js';
+
+var COL = {
+  cream: 0xfff8e1, tan: 0xf0e2bc, zoneBack: 0xfde3a8, zoneFront: 0xf6c14a,
+  line: 0xfffdf6, dark: 0x4e342e, brown: 0x8d6e63, yellow: 0xfac710,
+  skin: 0xffe9c7, urgent: 0xff7043, bowl: 0x8d6e63, bowlIn: 0x6d554c
+};
+
+var stage = document.getElementById('stage');
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+var renderer, scene, camera, ball;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+} catch (e) {
+  stage.style.display = 'none';
+}
+
+if (renderer) {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(COL.cream);
+  scene.fog = new THREE.Fog(COL.cream, 30, 58);
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+
+  // ── 조명 ──
+  scene.add(new THREE.AmbientLight(0xfff4d6, 1.15));
+  var sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  sun.position.set(12, 18, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -18; sun.shadow.camera.right = 18;
+  sun.shadow.camera.top = 18; sun.shadow.camera.bottom = -18;
+  sun.shadow.radius = 4;
+  scene.add(sun);
+
+  // ── 재질 헬퍼 ──
+  function mat(color) { return new THREE.MeshStandardMaterial({ color: color, roughness: 0.9, metalness: 0 }); }
+
+  // ── 바닥 & 코트 (18 × 9, 네트 z=0) ──
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), mat(COL.tan));
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  function zone(w, d, x, z, color) {
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat(color));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, 0.02, z);
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+  zone(9, 6, 0, 6, COL.zoneBack);    // A 후위
+  zone(9, 3, 0, 1.5, COL.zoneFront); // A 전위
+  zone(9, 3, 0, -1.5, COL.zoneFront);// B 전위
+  zone(9, 6, 0, -6, COL.zoneBack);   // B 후위
+
+  function line(w, d, x, z) {
+    var m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), mat(COL.line));
+    m.position.set(x, 0.035, z);
+    scene.add(m);
+  }
+  line(0.12, 18.1, -4.5, 0); line(0.12, 18.1, 4.5, 0);  // 사이드
+  line(9.1, 0.12, 0, 9); line(9.1, 0.12, 0, -9);        // 엔드
+  line(9.1, 0.12, 0, 3); line(9.1, 0.12, 0, -3);        // 어택(3m)
+  line(9.1, 0.12, 0, 0);                                 // 센터
+
+  // ── 네트 ──
+  var postGeo = new THREE.CylinderGeometry(0.09, 0.09, 2.55, 10);
+  [-5.1, 5.1].forEach(function (x) {
+    var p = new THREE.Mesh(postGeo, mat(COL.dark));
+    p.position.set(x, 1.275, 0);
+    p.castShadow = true;
+    scene.add(p);
+  });
+  var band = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.16, 0.05), mat(COL.line));
+  band.position.set(0, 2.42, 0);
+  band.castShadow = true;
+  scene.add(band);
+
+  var meshCanvas = document.createElement('canvas');
+  meshCanvas.width = 1024; meshCanvas.height = 128;
+  var mc = meshCanvas.getContext('2d');
+  mc.clearRect(0, 0, 1024, 128);
+  mc.strokeStyle = 'rgba(255,253,246,0.8)'; mc.lineWidth = 1.5;
+  for (var gx = 0; gx <= 1024; gx += 10) { mc.beginPath(); mc.moveTo(gx, 0); mc.lineTo(gx, 128); mc.stroke(); }
+  for (var gy = 0; gy <= 128; gy += 10) { mc.beginPath(); mc.moveTo(0, gy); mc.lineTo(1024, gy); mc.stroke(); }
+  var meshTex = new THREE.CanvasTexture(meshCanvas);
+  var netMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(10.2, 1.0),
+    new THREE.MeshStandardMaterial({ map: meshTex, transparent: true, side: THREE.DoubleSide, roughness: 1 })
+  );
+  netMesh.position.set(0, 1.85, 0);
+  scene.add(netMesh);
+
+  // 안테나 (홍백 스트라이프)
+  var antCanvas = document.createElement('canvas');
+  antCanvas.width = 8; antCanvas.height = 64;
+  var ac = antCanvas.getContext('2d');
+  for (var s = 0; s < 8; s++) { ac.fillStyle = s % 2 ? '#fffdf6' : '#ff7043'; ac.fillRect(0, s * 8, 8, 8); }
+  var antTex = new THREE.CanvasTexture(antCanvas);
+  [-4.5, 4.5].forEach(function (x) {
+    var a = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.035, 0.035, 1.7, 8),
+      new THREE.MeshStandardMaterial({ map: antTex, roughness: 0.8 })
+    );
+    a.position.set(x, 2.42 + 0.55, 0);
+    a.castShadow = true;
+    scene.add(a);
+  });
+
+  // ── 클래식 배구공 (스월 텍스처) ──
+  var ballCanvas = document.createElement('canvas');
+  ballCanvas.width = 512; ballCanvas.height = 256;
+  var bc = ballCanvas.getContext('2d');
+  bc.fillStyle = '#fffdf6'; bc.fillRect(0, 0, 512, 256);
+  bc.strokeStyle = '#8d6e63'; bc.lineWidth = 7; bc.lineCap = 'round';
+  for (var k = 0; k < 4; k++) {
+    var ox = k * 128;
+    bc.beginPath(); bc.moveTo(ox, 40); bc.bezierCurveTo(ox + 50, 90, ox + 78, 160, ox + 64, 236); bc.stroke();
+    bc.beginPath(); bc.moveTo(ox + 64, 20); bc.bezierCurveTo(ox + 110, 70, ox + 120, 150, ox + 128, 210); bc.stroke();
+  }
+  var ballTex = new THREE.CanvasTexture(ballCanvas);
+  ball = new THREE.Mesh(
+    new THREE.SphereGeometry(0.35, 24, 18),
+    new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.7 })
+  );
+  ball.castShadow = true;
+  scene.add(ball);
+
+  // ── 밥그릇 (랠리 종착지, 코트 밖) ──
+  // 프로파일: 바닥 중심 → 바깥벽 → 림 → 안쪽벽 → 안바닥 (닫힌 그릇)
+  var bowlPts = [
+    new THREE.Vector2(0, 0),
+    new THREE.Vector2(0.42, 0),
+    new THREE.Vector2(0.62, 0.08),
+    new THREE.Vector2(0.9, 0.5),
+    new THREE.Vector2(0.94, 0.64),
+    new THREE.Vector2(0.86, 0.66),
+    new THREE.Vector2(0.6, 0.34),
+    new THREE.Vector2(0.36, 0.28),
+    new THREE.Vector2(0, 0.26)
+  ];
+  var bowl = new THREE.Mesh(
+    new THREE.LatheGeometry(bowlPts, 28),
+    new THREE.MeshStandardMaterial({ color: 0xa1887f, roughness: 0.9, side: THREE.DoubleSide })
+  );
+  var BOWL_POS = new THREE.Vector3(-3.2, 0, 11);
+  bowl.position.copy(BOWL_POS);
+  bowl.castShadow = true; bowl.receiveShadow = true;
+  scene.add(bowl);
+
+  // ── 빈(bean) 캐릭터 ──
+  function makeBean(uniform) {
+    var g = new THREE.Group();
+    var legGeo = new THREE.CapsuleGeometry(0.11, 0.22, 4, 8);
+    [-0.14, 0.14].forEach(function (x) {
+      var leg = new THREE.Mesh(legGeo, mat(COL.dark));
+      leg.position.set(x, 0.28, 0);
+      leg.castShadow = true;
+      g.add(leg);
+    });
+    var torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.42, 6, 12), mat(uniform));
+    torso.position.y = 0.85;
+    torso.castShadow = true;
+    g.add(torso);
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 18, 14), mat(COL.skin));
+    head.position.y = 1.52;
+    head.castShadow = true;
+    g.add(head);
+    // 눈 (점 두 개)
+    [-0.11, 0.11].forEach(function (x) {
+      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(COL.dark));
+      eye.position.set(x, 1.56, 0.29);
+      g.add(eye);
+    });
+    // 팔: 어깨 피벗
+    function arm(side) {
+      var pivot = new THREE.Group();
+      pivot.position.set(side * 0.34, 1.14, 0);
+      var a = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.4, 4, 8), mat(uniform));
+      a.position.y = -0.28;
+      a.castShadow = true;
+      pivot.add(a);
+      g.add(pivot);
+      return pivot;
+    }
+    g.userData.armL = arm(-1);
+    g.userData.armR = arm(1);
+    return g;
+  }
+
+  // 서버 (옐로팀, A코트 뒤) — 토스 자세
+  var server = makeBean(COL.yellow);
+  server.position.set(1.5, 0, 10);
+  server.rotation.y = Math.PI;                       // 네트(-z) 바라봄
+  server.userData.armL.rotation.z = -2.6;            // 왼팔 위로 (토스)
+  server.userData.armR.rotation.x = 0.9;             // 오른팔 뒤로
+  scene.add(server);
+
+  // 리시버 (브라운팀) — 디그 자세
+  var receiver = makeBean(COL.brown);
+  receiver.position.set(-2, -0.1, -5.9);
+  receiver.rotation.x = 0.3;
+  receiver.userData.armL.rotation.x = -1.15;
+  receiver.userData.armR.rotation.x = -1.15;
+  receiver.userData.armL.rotation.z = -0.25;
+  receiver.userData.armR.rotation.z = 0.25;
+  scene.add(receiver);
+
+  // 세터 (브라운팀) — 두 손 위
+  var setter = makeBean(COL.brown);
+  setter.position.set(0.5, 0, -1.05);
+  setter.userData.armL.rotation.z = -2.9;
+  setter.userData.armR.rotation.z = 2.9;
+  scene.add(setter);
+
+  // 스파이커 (브라운팀) — 공중 스윙
+  var spiker = makeBean(COL.brown);
+  spiker.position.set(-2.1, 1.15, -0.75);
+  spiker.rotation.x = -0.18;
+  spiker.userData.armR.rotation.z = 2.5;   // 스윙 팔 위
+  spiker.userData.armL.rotation.x = -0.7;
+  spiker.userData.armL.rotation.z = -0.5;
+  scene.add(spiker);
+
+  // ── 랠리 궤적 (3D 베지어) ──
+  var HAND = new THREE.Vector3(1.15, 1.9, 9.8);
+  var PATHS = {
+    hero:    { A: HAND, C: HAND, B: HAND },
+    serve:   { A: HAND, C: new THREE.Vector3(0.4, 6.8, 3), B: new THREE.Vector3(-1.2, 3.6, -3.2) },
+    serve2:  { A: new THREE.Vector3(-1.2, 3.6, -3.2), C: new THREE.Vector3(-1.8, 2.0, -5.0), B: new THREE.Vector3(-2, 1.15, -5.75) },
+    receive: { A: new THREE.Vector3(-2, 1.15, -5.75), C: new THREE.Vector3(-1.2, 5.4, -3.6), B: new THREE.Vector3(0.45, 2.35, -1.1) },
+    toss:    { A: new THREE.Vector3(0.45, 2.35, -1.1), C: new THREE.Vector3(-0.6, 5.8, -0.9), B: new THREE.Vector3(-1.9, 4.1, -0.75) },
+    spike:   { A: new THREE.Vector3(-1.9, 4.1, -0.75), C: new THREE.Vector3(-1.5, 2.7, 1.3), B: new THREE.Vector3(-1.1, 0.36, 4.2) }
+  };
+  // 착지 바운드: (x,z) 등속, 홉별 포물선
+  var HOPS = [
+    { a: new THREE.Vector3(-1.1, 0.36, 4.2), b: new THREE.Vector3(-1.7, 0.36, 6.4), h: 2.0 },
+    { a: new THREE.Vector3(-1.7, 0.36, 6.4), b: new THREE.Vector3(-2.3, 0.36, 8.2), h: 1.1 },
+    { a: new THREE.Vector3(-2.3, 0.36, 8.2), b: new THREE.Vector3(-2.8, 0.36, 9.6), h: 0.55 },
+    { a: new THREE.Vector3(-2.8, 0.36, 9.6), b: new THREE.Vector3(-3.05, 0.36, 10.4), h: 0.28 },
+    { a: new THREE.Vector3(-3.05, 0.36, 10.4), b: new THREE.Vector3(-3.2, 0.68, 11), h: 0.6 }  // 그릇 안으로
+  ];
+
+  function bezier3(seg, t, out) {
+    var u = 1 - t;
+    out.set(
+      u*u*seg.A.x + 2*u*t*seg.C.x + t*t*seg.B.x,
+      u*u*seg.A.y + 2*u*t*seg.C.y + t*t*seg.B.y,
+      u*u*seg.A.z + 2*u*t*seg.C.z + t*t*seg.B.z
+    );
+  }
+  function bouncePos(t, out) {
+    var SETTLE = 0.1;
+    if (t >= 1 - SETTLE) { out.copy(HOPS[HOPS.length - 1].b); return; }
+    var tt = t / (1 - SETTLE);
+    var total = 0, spans = [];
+    HOPS.forEach(function (h) { var s = h.a.distanceTo(h.b); spans.push(s); total += s; });
+    var d = tt * total;
+    for (var i = 0; i < HOPS.length; i++) {
+      if (d <= spans[i] || i === HOPS.length - 1) {
+        var k = spans[i] ? Math.min(1, d / spans[i]) : 1;
+        var h = HOPS[i];
+        out.lerpVectors(h.a, h.b, k);
+        out.y = Math.max(h.a.y, h.b.y) * 0 + THREE.MathUtils.lerp(h.a.y, h.b.y, k) + h.h * 4 * k * (1 - k);
+        return;
+      }
+      d -= spans[i];
+    }
+  }
+
+  // ── 카메라 키프레임 (국면 시작 시점의 pos / lookAt) ──
+  var CAMS = {
+    hero:   { p: new THREE.Vector3(13, 7.5, 17),    t: new THREE.Vector3(0, 0.6, 0.5) },
+    serve:  { p: new THREE.Vector3(3.4, 2.8, 14.2), t: new THREE.Vector3(-0.2, 2.8, 0) },
+    serve2: { p: new THREE.Vector3(8.6, 5.0, -1.8), t: new THREE.Vector3(-1.8, 1.6, -5.2) },
+    receive:{ p: new THREE.Vector3(-9.0, 3.6, -10.5), t: new THREE.Vector3(0.4, 1.8, -1.2) },
+    toss:   { p: new THREE.Vector3(-7.0, 2.6, -4.6), t: new THREE.Vector3(-0.8, 2.8, -0.8) },
+    spike:  { p: new THREE.Vector3(-4.2, 1.6, 6.8),  t: new THREE.Vector3(-1.7, 2.9, -0.6) },
+    land:   { p: new THREE.Vector3(-0.2, 3.4, 7.6),  t: new THREE.Vector3(-2.6, 0.5, 9.8) },
+    end:    { p: new THREE.Vector3(-0.4, 3.6, 17), t: new THREE.Vector3(-3.2, 0.9, 11) }
+  };
+  var ORDER = ['hero', 'serve', 'serve2', 'receive', 'toss', 'spike', 'land'];
+  var NEXT = { hero: 'serve', serve: 'serve2', serve2: 'receive', receive: 'toss', toss: 'spike', spike: 'land', land: 'end' };
+
+  var sections = [].slice.call(document.querySelectorAll('section'));
+  var ballPos = new THREE.Vector3().copy(HAND);
+  var desiredP = CAMS.hero.p.clone();
+  var desiredT = CAMS.hero.t.clone();
+  var smoothP = desiredP.clone();
+  var smoothT = desiredT.clone();
+  camera.position.copy(smoothP);
+  camera.lookAt(smoothT);
+
+  function ease(t) { return t * t * (3 - 2 * t); }
+
+  function readScroll() {
+    var vh = window.innerHeight;
+    var y = window.scrollY + vh * 0.5;
+    var current = 'land', t = 1;
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i], top = s.offsetTop, h = s.offsetHeight;
+      if (y >= top && y < top + h) {
+        current = s.getAttribute('data-phase');
+        t = (y - top) / h;
+        break;
+      }
+    }
+    t = Math.min(1, Math.max(0, t));
+
+    // 공 위치 (착지 구간은 스크롤 60% 지점에서 바운드 완결 — 푸터까지 스크롤 못 가도 그릇에 담기게)
+    if (current === 'land') bouncePos(Math.min(1, t / 0.6), ballPos);
+    else bezier3(PATHS[current] || PATHS.hero, t, ballPos);
+
+    // 카메라: 현 국면 키프레임 → 다음 국면 키프레임으로 보간
+    var a = CAMS[current] || CAMS.hero;
+    var b = CAMS[NEXT[current]] || a;
+    var et = ease(t);
+    desiredP.lerpVectors(a.p, b.p, et);
+    desiredT.lerpVectors(a.t, b.t, et);
+  }
+
+  var lastScrollY = -1;
+  function frame() {
+    if (window.scrollY !== lastScrollY) { lastScrollY = window.scrollY; readScroll(); }
+    // 시네마틱 스무딩
+    smoothP.lerp(desiredP, reduced ? 1 : 0.09);
+    smoothT.lerp(desiredT, reduced ? 1 : 0.09);
+    camera.position.copy(smoothP);
+    camera.lookAt(smoothT);
+    ball.position.copy(ballPos);
+    ball.rotation.z = -window.scrollY * 0.004;
+    ball.rotation.x = window.scrollY * 0.002;
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  readScroll();
+  smoothP.copy(desiredP); smoothT.copy(desiredT);
+  requestAnimationFrame(frame);
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    readScroll();
+  });
+}
+
+// 섹션 카드 페이드인
+var io = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('on'); });
+}, { threshold: 0.2 });
+document.querySelectorAll('.inner').forEach(function (el) { io.observe(el); });
+</script>
+</body>
+</html>
