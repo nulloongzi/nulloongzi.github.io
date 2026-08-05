@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>누룽지 — 랠리 인터뷰 (프로토타입)</title>
+<style>
+  :root {
+    --yellow: #fac710;
+    --brown: #8d6e63;
+    --dark: #4e342e;
+    --cream: #fff8e1;
+    --text: #3e2f2a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── 공 (스크롤 따라 이동) ── */
+  #ball {
+    position: fixed; left: 0; top: 0; z-index: 5;
+    width: 64px; height: 64px;
+    pointer-events: none;
+    will-change: transform;
+    filter: drop-shadow(0 10px 18px rgba(93,64,55,0.25));
+  }
+  #ball.landed { transition: transform .45s cubic-bezier(.34,1.56,.64,1); }
+
+  /* 꽂힘 임팩트 */
+  #impact {
+    position: fixed; z-index: 4; width: 120px; height: 34px;
+    border-radius: 50%; background: radial-gradient(ellipse, rgba(250,199,16,.55), rgba(250,199,16,0) 70%);
+    opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(.4);
+  }
+  #impact.show { animation: impact .6s ease-out forwards; }
+  @keyframes impact {
+    0% { opacity: 0; transform: translate(-50%,-50%) scale(.4); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.6); }
+  }
+
+  /* ── 섹션 공통 ── */
+  section {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 12vh 24px;
+    position: relative;
+  }
+  .inner { max-width: 640px; margin: 0 auto; width: 100%; }
+
+  .phase {
+    font-size: .85rem; font-weight: 800; letter-spacing: .18em;
+    color: var(--brown); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .phase::before { content: ""; width: 26px; height: 3px; background: var(--yellow); border-radius: 2px; }
+  .phase-ko { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 800; color: var(--dark); line-height: 1.2; margin-bottom: 28px; }
+
+  .q {
+    font-weight: 700; color: var(--brown); margin-bottom: 14px; font-size: 1.05rem;
+  }
+  .q::before { content: "Q. "; color: var(--yellow); -webkit-text-stroke: .5px var(--brown); }
+  .a { font-size: 1.12rem; }
+  .a p { margin-bottom: 14px; }
+  .a strong { color: var(--dark); }
+
+  /* 등장 애니메이션 (절제: 살짝 떠오르며 페이드인) */
+  .inner { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .inner.on { opacity: 1; transform: none; }
+
+  /* ── 히어로 ── */
+  .hero { text-align: center; }
+  .hero h1 { font-size: clamp(2.4rem, 8vw, 3.6rem); font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+  .hero .sub { color: var(--brown); font-size: 1.05rem; margin-bottom: 26px; }
+  .hero .hint { margin-top: 8vh; color: var(--brown); font-size: .9rem; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+  /* ── 스파이크 섹션: 강조 ── */
+  .spike-line { font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 800; color: var(--dark); margin-top: 18px; }
+  .spike-line em { font-style: normal; background: linear-gradient(transparent 62%, var(--yellow) 62%); }
+
+  /* ── 착지(코트 바닥) ── */
+  .floor {
+    background: linear-gradient(var(--cream), #fdf3d0);
+    text-align: center;
+  }
+  .floor .a { max-width: 480px; margin: 0 auto 40px; }
+  .courtline { width: 180px; height: 6px; background: var(--brown); border-radius: 3px; margin: 0 auto 48px; opacity: .5; }
+  .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; padding: 10px 22px;
+    border-radius: 999px; text-decoration: none; font-weight: 700; font-size: .95rem;
+  }
+  .btn.primary { background: var(--yellow); color: var(--dark); }
+  .btn.ghost { border: 1.5px solid var(--brown); color: var(--brown); }
+  footer { text-align: center; padding: 36px 0 44px; color: var(--brown); font-size: .85rem; background: #fdf3d0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #ball, .hero .hint { display: none; }
+    .inner { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 배구공: 로고와 같은 문법 (흰 몸통 + 옐로 심) -->
+  <svg id="ball" viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="32" cy="32" r="30" fill="#fffdf6" stroke="#e6d9b8" stroke-width="1.5"/>
+    <path d="M32 2 C 40 18 40 46 32 62" fill="none" stroke="#fac710" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M4 22 C 22 28 42 28 60 22" fill="none" stroke="#fac710" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M8 46 C 24 38 44 40 58 44" fill="none" stroke="#fac710" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>
+  <div id="impact"></div>
+
+  <section class="hero" data-phase="hero">
+    <div class="inner">
+      <h1>누룽지의 랠리</h1>
+      <div class="sub">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</div>
+      <div class="hint">스크롤하면 랠리가 시작됩니다 ↓</div>
+    </div>
+  </section>
+
+  <section data-phase="serve">
+    <div class="inner">
+      <div class="phase">Serve</div>
+      <div class="phase-ko">서브 — 시작</div>
+      <div class="q">배구, 어떻게 시작했어요?</div>
+      <div class="a">
+        <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
+        <p>만화처럼은 아니어도, <strong>친구들이랑 배구를 할 수 있다는 것 자체</strong>가 좋았어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="serve2">
+    <div class="inner">
+      <div class="q">왜 '누룽지'예요?</div>
+      <div class="a">
+        <p>음악을 하고 싶던 시절 랩네임이 null(널)이었어요. 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 인스타 아이디가 null_oongzi가 됐죠.</p>
+        <p>그 계정에 배구하는 걸 음악에 맞춰 일기처럼 올리다 보니, 어느새 코트에서 <strong>'누룽지'</strong>로 불리고 있더라고요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="receive">
+    <div class="inner">
+      <div class="phase">Receive</div>
+      <div class="phase-ko">리시브 — 받은 것</div>
+      <div class="q">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
+      <div class="a">
+        <p>새로운 사람 만나는 게 즐겁지 않던 시절이 있었어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
+        <p>제가 받은 환대는 플레이가 아니라 <strong>밥상에서</strong> 왔어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="toss">
+    <div class="inner">
+      <div class="phase">Toss</div>
+      <div class="phase-ko">토스 — 올려주는 것</div>
+      <div class="q">그런데 왜 지도까지 만들었어요?</div>
+      <div class="a">
+        <p>우연히 한 형 덕에 6인제를 시작했고, 그 형을 따라다니며 얼굴을 트니까 초대가 계속 이어졌어요. 어느새 제가 "어디서 운동할 수 있어요?"라는 DM을 받는 사람이 돼 있었죠. 그 DM에 하나하나 답하다가 — 아, <strong>지도를 만들어야겠다.</strong></p>
+        <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요. 연결이 성사된 걸 <strong>양쪽에서 확인하는 순간.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <section data-phase="spike">
+    <div class="inner">
+      <div class="phase">Spike</div>
+      <div class="phase-ko">스파이크 — 하고 싶은 말</div>
+      <div class="q">한국 배구판에 하고 싶은 말은?</div>
+      <div class="a">
+        <p>좀 폐쇄적이에요. 정보가 카페 안에 있으니 가입자가 아니면 시작조차 어렵죠. 풋살이나 농구는 집 근처에서 언제든 할 수 있잖아요.</p>
+        <p class="spike-line">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></p>
+      </div>
+      <div class="q" style="margin-top:40px">그래서 다음으로 준비하는 게?</div>
+      <div class="a">
+        <p>AI 심판이요. 9인제 하던 사람들이 6인제를 안 하게 되는 제일 큰 걸림돌이 <strong>로테이션</strong>이거든요. 규칙이 어려워서 못 즐기는 일이 없도록, 더 많은 사람이 6인제를 즐겼으면 해서 만들고 있어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="floor" data-phase="land">
+    <div class="inner">
+      <div class="courtline"></div>
+      <div class="q" style="text-align:center">여기까지 스크롤한 사람에게 바라는 게 있다면?</div>
+      <div class="a">
+        <p>배구를 더 사랑해줬으면 좋겠어요. 그리고 그냥 누룽지가 궁금했던 거라면 — <strong>그걸로 충분해요.</strong></p>
+      </div>
+      <div class="links">
+        <a class="btn primary" href="https://do.nulloongzi.com/">누룽지도 열어보기</a>
+        <a class="btn ghost" href="https://www.instagram.com/null_oongzi">Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 누룽지 · 밥은 먹고 다니냐</footer>
+
+<script>
+  // ── 랠리 궤적: 섹션 구간마다 2차 베지어 (A: 시작, C: 컨트롤, B: 끝) — vw/vh 단위 % ──
+  var SEGMENTS = {
+    hero:    { A: [50, 62], C: [50, 60], B: [14, 74] },   // 대기 → 서버 손으로
+    serve:   { A: [14, 74], C: [40, 4],  B: [82, 42] },   // 높은 서브 포물선
+    serve2:  { A: [82, 42], C: [92, 88], B: [72, 30] },   // 깊이 떨어지는 공
+    receive: { A: [72, 30], C: [55, 95], B: [20, 45] },   // 디그: 낮게 받아 올림
+    toss:    { A: [20, 45], C: [12, 6],  B: [34, 16] },   // 세터의 높은 토스
+    spike:   { A: [34, 16], C: [55, 35], B: [80, 86] },   // 강타: 가파른 대각선
+    land:    { A: [80, 86], C: [80, 86], B: [80, 86] }    // 꽂힘 (고정)
+  };
+
+  var ball = document.getElementById('ball');
+  var impact = document.getElementById('impact');
+  var sections = [].slice.call(document.querySelectorAll('section'));
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var landed = false;
+
+  function bezier(seg, t) {
+    var u = 1 - t;
+    return [
+      u*u*seg.A[0] + 2*u*t*seg.C[0] + t*t*seg.B[0],
+      u*u*seg.A[1] + 2*u*t*seg.C[1] + t*t*seg.B[1]
+    ];
+  }
+
+  function update() {
+    if (reduced) return;
+    var vh = window.innerHeight, vw = window.innerWidth;
+    var y = window.scrollY + vh * 0.5; // 화면 중앙 기준
+    var current = null, t = 0;
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i], top = s.offsetTop, h = s.offsetHeight;
+      if (y >= top && y < top + h) {
+        current = s.getAttribute('data-phase');
+        t = (y - top) / h;
+        break;
+      }
+    }
+    if (!current) { current = 'land'; t = 1; }
+    var seg = SEGMENTS[current] || SEGMENTS.land;
+    var p = bezier(seg, Math.min(1, Math.max(0, t)));
+    var px = p[0] / 100 * vw - 32, py = p[1] / 100 * vh - 32;
+    var rot = window.scrollY * 0.25;
+
+    if (current === 'land') {
+      if (!landed) {
+        landed = true;
+        ball.classList.add('landed');
+        impact.style.left = (seg.B[0] / 100 * vw) + 'px';
+        impact.style.top = (seg.B[1] / 100 * vh + 26) + 'px';
+        impact.classList.remove('show'); void impact.offsetWidth;
+        impact.classList.add('show');
+      }
+      ball.style.transform = 'translate(' + px + 'px,' + py + 'px) rotate(' + rot + 'deg) scale(1, .82)';
+      return;
+    }
+    if (landed) { landed = false; ball.classList.remove('landed'); }
+    ball.style.transform = 'translate(' + px + 'px,' + py + 'px) rotate(' + rot + 'deg)';
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+
+  // 섹션 등장 (절제된 페이드인)
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) e.target.classList.add('on');
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('.inner').forEach(function (el) { io.observe(el); });
+</script>
+</body>
+</html>
