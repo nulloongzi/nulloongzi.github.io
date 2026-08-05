@@ -12,7 +12,7 @@
 
 ## 채워야 할 플레이스홀더 (사용자에게 물어볼 것)
 
-1. **인스타 핸들** — `index.html` 하단 `CONTACT.instagram`. 값이 비면 연락 섹션 자체가 숨겨진다.
+1. ~~**인스타 핸들**~~ ✅ 채움 (2026-08-05, `null_oongzi`) — 연락 섹션 표시됨.
 2. **프로필 사진** — 지금은 🏐 이모지 원형(`.avatar`). 실사진으로 교체 시 `<img>`로.
 3. 이메일(`CONTACT.email`) — `hello@nulloongzi.com`을 쓰려면 Cloudflare Email Routing(무료) 설정 필요.
 
@@ -31,7 +31,7 @@
 
 - AI 심판 프로젝트 카드 구체화 (지금은 "준비 중" 배지만)
 - 누룽지도 실적 노출(클럽 수·픽업 크루 수 등) — 단, PHILOSOPHY 가치필터 #1(랭킹·위상 금지)에 걸리지 않는 방식으로
-- OG 이미지(지금은 텍스트만), 파비콘 정식화(지금은 이모지 SVG)
+- ~~OG 이미지, 파비콘 정식화~~ ✅ 완료 (2026-08-05) — `assets/`에 OG 1200×630 + 파비콘 4종(32/96/192/apple-touch 180). 로고 원본은 앱 레포 `assets/nulloongzido logo_without bg.png`, OG는 크림 배경 + Pretendard로 HTML→스크린샷 방식 제작.
 - 인스타 피드/릴스 임베드 — 웹 레포 `js/insta-embed.js`에 선례 있음
 
 ## 관련 문서

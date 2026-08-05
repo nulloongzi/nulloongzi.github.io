@@ -10,7 +10,15 @@
   <meta property="og:description" content="생활배구에 첫 물꼬를 트는 사람. 누룽지도를 만듭니다.">
   <meta property="og:url" content="https://nulloongzi.com/">
   <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>">
+  <meta property="og:image" content="https://nulloongzi.com/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://nulloongzi.com/assets/og.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
   <style>
     :root {
       --yellow: #fac710;
@@ -164,10 +172,9 @@
 
   <script>
     // ── 설정: 채워지면 버튼이 자동으로 나타난다 ──
-    // TODO: 인스타 핸들 채우기 (예: "https://www.instagram.com/핸들")
     var CONTACT = {
-      instagram: "",   // 비워두면 버튼 미표시
-      email: ""        // 예: "mailto:hello@nulloongzi.com"
+      instagram: "https://www.instagram.com/null_oongzi",
+      email: ""        // 예: "mailto:hello@nulloongzi.com" (Cloudflare Email Routing 설정 후)
     };
 
     (function renderContacts() {
