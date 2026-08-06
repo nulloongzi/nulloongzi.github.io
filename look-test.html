@@ -131,6 +131,33 @@
 <svg id="hand-tossL" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 <svg id="hand-tossR" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 
+<!-- 측면 실루엣 컷: 점프 서브 아치 (니시다 레퍼런스) -->
+<svg id="silhouette" viewBox="0 0 400 420" style="display:none; position:fixed; z-index:3; left:50%; top:44%; width:min(72vw,340px); transform:translate(-50%,-50%); pointer-events:none">
+  <g fill="#4e342e" transform="rotate(-12 200 220)">
+    <circle cx="170" cy="86" r="27"/>                                      <!-- 머리 (뒤로 젖힘) -->
+    <path d="M165 108 C 138 140, 140 200, 190 248 C 204 258, 224 252, 226 240 C 210 205, 208 150, 210 116 C 196 104, 176 100, 165 108 Z"/> <!-- 활처럼 휜 몸통 -->
+    <path d="M192 132 C 218 116, 246 104, 260 100 C 272 97, 276 110, 266 116 C 248 124, 220 134, 200 144 Z"/>  <!-- 상완: 어깨→팔꿈치(높이) -->
+    <path d="M252 112 C 250 92, 240 70, 224 56 C 214 48, 204 58, 212 68 C 226 80, 240 96, 248 112 Z"/>          <!-- 전완: 팔꿈치→머리 뒤 손 -->
+    <path d="M170 126 C 142 108, 114 88, 100 72 C 92 62, 102 52, 112 60 C 130 74, 154 94, 176 110 Z"/>          <!-- 앞팔: 앞위로 뻗음 -->
+    <path d="M198 240 C 226 252, 252 272, 266 288 C 274 298, 264 310, 254 302 C 234 286, 210 266, 192 252 Z"/>  <!-- 뒷다리 허벅지 -->
+    <path d="M254 290 C 270 308, 284 332, 290 352 C 293 364, 279 368, 274 356 C 266 338, 254 316, 246 300 Z"/>  <!-- 뒷다리 종아리 (접힘) -->
+    <path d="M184 246 C 206 268, 226 294, 238 314 C 244 326, 232 334, 224 324 C 208 304, 190 280, 174 260 Z"/>  <!-- 앞다리 허벅지 -->
+    <path d="M230 314 C 240 334, 246 356, 248 372 C 249 384, 235 386, 232 374 C 228 356, 222 336, 216 322 Z"/>  <!-- 앞다리 종아리 -->
+  </g>
+</svg>
+
+<!-- 측면 컷용 수평 스피드라인 -->
+<svg id="hlines" viewBox="0 0 100 100" preserveAspectRatio="none" style="display:none; position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.4">
+  <g fill="#4e342e" id="hl"></g>
+</svg>
+
+<!-- 타이포: 서브 실루엣 컷 -->
+<div class="typo bottom" id="typo-serve" style="display:none">
+  <div class="q">배구, 어떻게 시작했어요?</div>
+  <div class="line">만화처럼은 아니어도,</div>
+  <span class="hit">친구들이랑 배구를<br>할 수 있다는 것.</span>
+</div>
+
 <!-- 타이포: 스파이크 -->
 <div class="typo middle" id="typo-spike" style="display:none">
   <div class="q">한국 배구판에 하고 싶은 말은?</div>
@@ -320,6 +347,24 @@ if (SCENE === 'spike') {
       (cxr + px) + ',' + (cyr + py) + ' ' + (cxr - px) + ',' + (cyr - py) + ' ' + x1 + ',' + y1);
     p.setAttribute('opacity', String(0.35 + (i % 3) * 0.18));
     sl.appendChild(p);
+  }
+} else if (SCENE === 'serve') {
+  // 측면 실루엣 컷: 점프 서브 아치 (몸의 순간은 3인칭 실루엣)
+  camera.position.set(10, 2.9, 16.5);
+  camera.lookAt(-7, 2.5, -1);
+  ball.position.set(-1.5, 5.4, 8.0);   // 실루엣 손 위쪽의 토스 공
+  ball.rotation.z = 0.4;
+  show('silhouette'); show('hlines'); show('typo-serve');
+  var hl = document.getElementById('hl');
+  for (var j = 0; j < 26; j++) {
+    var y = 3 + j * 3.8 + (j % 3);
+    var len = 18 + (j * 7) % 46;
+    var x0 = (j * 37) % (100 - len);
+    var hgt = 0.22 + (j % 3) * 0.14;
+    var r = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    r.setAttribute('points', x0 + ',' + y + ' ' + (x0 + len) + ',' + (y - hgt / 2) + ' ' + (x0 + len) + ',' + (y + hgt / 2));
+    r.setAttribute('opacity', String(0.25 + (j % 4) * 0.12));
+    hl.appendChild(r);
   }
 } else {
   // 세터 시점: 하늘을 올려다보는 토스
