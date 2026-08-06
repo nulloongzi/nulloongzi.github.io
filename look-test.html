@@ -23,8 +23,8 @@
   .hand { position: fixed; z-index: 3; pointer-events: none; opacity: 0.72; }
   #hand-reach { left: -9vw; top: 38vh; width: 30vw; transform: rotate(22deg); }
   #hand-fist { right: -8vw; bottom: -8vh; width: 48vw; transform: rotate(-10deg); }
-  #hand-tossL { left: 3vw; bottom: -10vh; width: 40vw; transform: rotate(16deg); }
-  #hand-tossR { right: 3vw; bottom: -10vh; width: 40vw; transform: rotate(-16deg) scaleX(-1); }
+  #hand-tossL { left: -5vw; bottom: 0vh; width: 56vw; transform: rotate(8deg) scaleX(-1); }
+  #hand-tossR { right: -5vw; bottom: 0vh; width: 56vw; transform: rotate(-8deg); }
 
   /* 장면 결합 타이포그래피 (박스 없음) */
   .typo {
@@ -33,6 +33,7 @@
     text-shadow: 0 2px 18px rgba(255,248,225,.95), 0 0 40px rgba(255,248,225,.8);
   }
   .typo.bottom { bottom: 9vh; }
+  .typo.top { top: 8vh; }
   .typo.middle { top: 54vh; }
   .typo .q {
     font-size: .95rem; font-weight: 700; color: var(--brown);
@@ -80,6 +81,29 @@
       <!-- 관절 크리즈 힌트 -->
       <path d="M88 152 C 104 160 124 160 142 152" fill="none" stroke-width="3" opacity="0.45"/>
     </g>
+    <!-- 토스 손: 손등 뷰, 손가락 활짝 벌려 공을 향함 (오른손 기준, 엄지 안쪽) -->
+    <g id="spread-hand" fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <!-- 팔뚝 -->
+      <path d="M150 380 C 148 338, 149 312, 153 297 L 205 300 C 209 314, 209 342, 207 380 Z"/>
+      <!-- 손등: 너클에서 넓고 손목으로 좁아짐 -->
+      <path d="M126 218 L 234 212 C 238 246, 226 284, 206 300 C 186 314, 164 312, 152 299 C 136 284, 126 252, 126 218 Z"/>
+      <!-- 검지 (안쪽으로 살짝 굽음) -->
+      <path transform="rotate(-19 140 216)" d="M129 216 C 126 176 127 120 133 82 C 135 68 152 68 155 82 C 160 122 158 178 153 216 Z"/>
+      <!-- 중지 (최장) -->
+      <path transform="rotate(-4 172 214)" d="M161 214 C 158 170 159 106 164 62 C 166 48 183 48 185 62 C 190 108 188 172 184 214 Z"/>
+      <!-- 약지 -->
+      <path transform="rotate(9 202 213)" d="M192 213 C 189 174 190 118 195 78 C 197 65 212 65 214 78 C 218 120 216 176 212 213 Z"/>
+      <!-- 소지 (짧고 가늘게, 더 벌어짐) -->
+      <path transform="rotate(24 228 214)" d="M221 214 C 218 184 219 148 223 120 C 225 109 237 109 239 120 C 242 150 240 186 237 214 Z"/>
+      <!-- 엄지: 안쪽(공 쪽)으로 뻗음 -->
+      <path d="M130 254 C 110 238 92 212 86 190 C 82 174 96 164 108 174 C 124 190 136 216 142 240 C 144 250 138 258 130 254 Z"/>
+      <!-- 너클 볼록선 4개 -->
+      <path d="M132 212 q 7 -8 15 -2 M163 208 q 8 -8 16 -2 M195 206 q 8 -7 15 -2 M223 208 q 6 -6 12 -1" fill="none" stroke-width="3.5" opacity="0.5"/>
+      <!-- 손가락 관절 크리즈 (PIP) -->
+      <path d="M133 148 q 9 -4 18 0 M164 132 q 10 -4 19 0 M196 142 q 9 -4 17 0 M224 164 q 7 -3 13 0" fill="none" stroke-width="3" opacity="0.4"/>
+      <!-- 손등 힘줄 힌트 -->
+      <path d="M146 226 C 154 254 162 280 170 296 M198 222 C 196 250 192 276 186 296" fill="none" stroke-width="2.5" opacity="0.3"/>
+    </g>
     <!-- 주먹: 말린 네 손가락 + 감싼 엄지, 측후면 뷰 -->
     <g id="fist-hand" fill="#fffdf6" stroke="#4e342e" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
       <!-- 팔뚝 -->
@@ -103,9 +127,9 @@
 <!-- POV 손: 당긴 주먹 (스파이크 - 도움닫기) -->
 <svg id="hand-fist" class="hand" viewBox="0 0 260 300" style="display:none"><use href="#fist-hand"/></svg>
 
-<!-- POV 손: 토스 (양손, 손가락을 살짝 안쪽으로) -->
-<svg id="hand-tossL" class="hand" viewBox="0 0 226 320" style="display:none"><use href="#open-hand"/></svg>
-<svg id="hand-tossR" class="hand" viewBox="0 0 226 320" style="display:none"><use href="#open-hand"/></svg>
+<!-- POV 손: 토스 (양손, 손가락 활짝 벌려 공을 향함) -->
+<svg id="hand-tossL" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
+<svg id="hand-tossR" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 
 <!-- 타이포: 스파이크 -->
 <div class="typo middle" id="typo-spike" style="display:none">
@@ -115,7 +139,7 @@
 </div>
 
 <!-- 타이포: 토스 -->
-<div class="typo bottom" id="typo-toss" style="display:none">
+<div class="typo top" id="typo-toss" style="display:none">
   <div class="q">그런데 왜 지도까지 만들었어요?</div>
   <div class="line">그 DM에 하나하나 답하다가 —</div>
   <span class="hit">아, 지도를 만들어야겠다.</span>
@@ -189,6 +213,16 @@ for (var bi = 0; bi < 5; bi++) {
   var beam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 40), tmat(0xd9c08b));
   beam.position.set(-12 + bi * 6, 10.2, -2);
   scene.add(beam);
+  // 보 아래 체육관 조명 열 (올려다보는 컷의 드라마)
+  for (var li = 0; li < 6; li++) {
+    var lamp = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.5), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    lamp.position.set(-12 + bi * 6, 9.85, -14 + li * 5);
+    scene.add(lamp);
+    var halo = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.1), new THREE.MeshBasicMaterial({ color: 0xfffbe0, transparent: true, opacity: 0.5 }));
+    halo.rotation.x = Math.PI / 2;
+    halo.position.set(-12 + bi * 6, 9.78, -14 + li * 5);
+    scene.add(halo);
+  }
 }
 
 // ── 바닥/코트 ──
