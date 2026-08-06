@@ -131,6 +131,31 @@
 <svg id="hand-tossL" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 <svg id="hand-tossR" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 
+<!-- POV 서브 홀드: 왼손 위 컵 모양 손 (공을 앞으로 들고 있음, 토스 직전) -->
+<svg id="cup-hand" viewBox="0 0 300 300" style="display:none; position:fixed; z-index:3; left:49%; bottom:5.5vh; width:min(62vw,290px); transform:translateX(-50%) rotate(-3deg); pointer-events:none; opacity:.78">
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 팔뚝 (아래에서 진입) -->
+    <path d="M118 300 C 120 268, 124 246, 128 234 L 176 236 C 179 250, 181 272, 182 300 Z"/>
+    <!-- 손바닥: 위로 벌린 얕은 컵 -->
+    <path d="M90 204 C 94 184, 118 170, 150 168 C 186 166, 212 178, 216 198 C 218 212, 208 224, 188 228 C 158 233, 116 232, 100 222 C 92 217, 88 211, 90 204 Z"/>
+    <!-- 엄지 (왼쪽에서 올라옴) -->
+    <path d="M94 202 C 82 190, 74 174, 76 158 C 78 146, 92 146, 96 158 C 101 172, 104 188, 106 200 Z"/>
+    <!-- 손가락 끝 4개 (오른쪽 림 위로 살짝) -->
+    <path transform="rotate(-8 172 158)" d="M164 178 C 163 164, 165 150, 169 142 C 172 135, 181 136, 182 144 C 184 156, 183 170, 181 180 Z"/>
+    <path transform="rotate(-2 194 156)" d="M187 176 C 186 160, 188 146, 192 138 C 195 131, 204 132, 205 140 C 206 152, 205 166, 203 178 Z"/>
+    <path transform="rotate(6 214 160)" d="M208 178 C 207 164, 209 152, 213 144 C 216 138, 224 139, 225 146 C 226 158, 224 170, 222 180 Z"/>
+    <path transform="rotate(14 230 170)" d="M226 186 C 225 175, 226 165, 229 158 C 232 152, 239 153, 240 160 C 240 170, 238 180, 236 188 Z"/>
+    <!-- 손바닥 크리즈 -->
+    <path d="M108 214 C 132 222 168 222 194 214" fill="none" stroke-width="3" opacity="0.4"/>
+  </g>
+</svg>
+
+<!-- 타이포: 서브 홀드 -->
+<div class="typo top" id="typo-servehold" style="display:none">
+  <div class="q">배구, 어떻게 시작했어요?</div>
+  <div class="line">고3 수행평가였어요.<br>그때 하이큐를 처음 봤고 —</div>
+</div>
+
 <!-- POV 리시브: 모인 팔뚝 플랫폼 (연출상 실제보다 높게 프레임 인) -->
 <svg id="platform" viewBox="0 0 300 420" style="display:none; position:fixed; z-index:3; left:55%; bottom:8vh; width:min(64vw,300px); transform:translateX(-50%) rotate(-12deg); pointer-events:none; opacity:.8">
   <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
@@ -371,6 +396,13 @@ if (SCENE === 'spike') {
     p.setAttribute('opacity', String(0.35 + (i % 3) * 0.18));
     sl.appendChild(p);
   }
+} else if (SCENE === 'servehold') {
+  // 서버 시점: 베이스라인에서 코트를 바라보며 왼손에 공을 들고 있음 (토스 직전)
+  camera.position.set(1.5, 1.7, 10.3);
+  camera.lookAt(-0.3, 1.7, -4);
+  ball.position.set(1.1, 1.2, 7.55);   // 손 바로 위 (릴리즈 순간)
+  ball.rotation.z = 0.3;
+  show('cup-hand'); show('typo-servehold');
 } else if (SCENE === 'receive') {
   // 리시버 시점: 낙하하는 공 + 네트/상대 코트/천장. 플랫폼은 연출상 프레임 안으로
   camera.position.set(-2, 1.7, -6.2);
