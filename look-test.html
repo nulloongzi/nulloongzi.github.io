@@ -131,6 +131,29 @@
 <svg id="hand-tossL" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 <svg id="hand-tossR" class="hand" viewBox="0 0 280 380" style="display:none"><use href="#spread-hand"/></svg>
 
+<!-- POV 리시브: 모인 팔뚝 플랫폼 (연출상 실제보다 높게 프레임 인) -->
+<svg id="platform" viewBox="0 0 300 420" style="display:none; position:fixed; z-index:3; left:55%; bottom:8vh; width:min(64vw,300px); transform:translateX(-50%) rotate(-12deg); pointer-events:none; opacity:.8">
+  <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 왼 팔뚝 (아래=가까움=굵게, 위=멀어짐=가늘게) -->
+    <path d="M78 420 C 82 350, 96 270, 116 212 C 122 196, 146 198, 146 214 C 138 276, 132 352, 132 420 Z"/>
+    <!-- 오른 팔뚝 -->
+    <path d="M222 420 C 218 350, 206 270, 188 212 C 182 196, 158 198, 158 214 C 164 276, 168 352, 168 420 Z"/>
+    <!-- 맞잡은 손 (겹친 주먹 + 엄지 두 개) -->
+    <path d="M112 210 C 104 184, 118 162, 146 158 C 176 154, 196 170, 194 194 C 192 214, 176 226, 150 226 C 128 226, 116 220, 112 210 Z"/>
+    <path d="M132 168 C 130 154, 136 144, 146 142 C 154 141, 160 148, 158 160 Z"/>
+    <path d="M156 164 C 156 150, 164 141, 172 142 C 180 144, 183 152, 180 164 Z"/>
+    <!-- 손목 크리즈 -->
+    <path d="M120 216 q 16 8 34 6 M160 222 q 16 -2 30 -10" fill="none" stroke-width="3" opacity="0.4"/>
+  </g>
+</svg>
+
+<!-- 타이포: 리시브 -->
+<div class="typo top" id="typo-receive" style="display:none">
+  <div class="q">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
+  <div class="line">제가 받은 환대는 플레이가 아니라</div>
+  <span class="hit">밥상에서 왔어요.</span>
+</div>
+
 <!-- 측면 실루엣 컷: 점프 서브 아치 (니시다 레퍼런스) -->
 <svg id="silhouette" viewBox="0 0 400 420" style="display:none; position:fixed; z-index:3; left:50%; top:44%; width:min(72vw,340px); transform:translate(-50%,-50%); pointer-events:none">
   <g fill="#4e342e" transform="rotate(-12 200 220)">
@@ -348,6 +371,13 @@ if (SCENE === 'spike') {
     p.setAttribute('opacity', String(0.35 + (i % 3) * 0.18));
     sl.appendChild(p);
   }
+} else if (SCENE === 'receive') {
+  // 리시버 시점: 낙하하는 공 + 네트/상대 코트/천장. 플랫폼은 연출상 프레임 안으로
+  camera.position.set(-2, 1.7, -6.2);
+  camera.lookAt(1.2, 4.2, 8);
+  ball.position.set(-0.85, 2.75, -2.7);
+  ball.rotation.z = 0.9;
+  show('platform'); show('typo-receive');
 } else if (SCENE === 'serve') {
   // 측면 실루엣 컷: 점프 서브 아치 (몸의 순간은 3인칭 실루엣)
   camera.position.set(10, 2.9, 16.5);
