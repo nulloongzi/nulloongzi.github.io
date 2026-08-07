@@ -104,6 +104,51 @@
       <!-- 손등 힘줄 힌트 -->
       <path d="M146 226 C 154 254 162 280 170 296 M198 222 C 196 250 192 276 186 296" fill="none" stroke-width="2.5" opacity="0.3"/>
     </g>
+    <!-- 토스 손 v2: 셀 셰이딩 버전 (음영 면 + 손톱 + 관절 디테일) -->
+    <clipPath id="spread-clip">
+      <path d="M150 380 C 148 338, 149 312, 153 297 L 205 300 C 209 314, 209 342, 207 380 Z"/>
+      <path d="M126 218 L 234 212 C 238 246, 226 284, 206 300 C 186 314, 164 312, 152 299 C 136 284, 126 252, 126 218 Z"/>
+      <path transform="rotate(-19 140 216)" d="M129 216 C 126 176 127 120 133 82 C 135 68 152 68 155 82 C 160 122 158 178 153 216 Z"/>
+      <path transform="rotate(-4 172 214)" d="M161 214 C 158 170 159 106 164 62 C 166 48 183 48 185 62 C 190 108 188 172 184 214 Z"/>
+      <path transform="rotate(9 202 213)" d="M192 213 C 189 174 190 118 195 78 C 197 65 212 65 214 78 C 218 120 216 176 212 213 Z"/>
+      <path transform="rotate(24 228 214)" d="M221 214 C 218 184 219 148 223 120 C 225 109 237 109 239 120 C 242 150 240 186 237 214 Z"/>
+      <path d="M130 254 C 110 238 92 212 86 190 C 82 174 96 164 108 174 C 124 190 136 216 142 240 C 144 250 138 258 130 254 Z"/>
+    </clipPath>
+    <g id="spread-hand2">
+      <!-- 베이스 (v1과 동일 실루엣) -->
+      <g fill="#fffdf6" stroke="#4e342e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M150 380 C 148 338, 149 312, 153 297 L 205 300 C 209 314, 209 342, 207 380 Z"/>
+        <path d="M126 218 L 234 212 C 238 246, 226 284, 206 300 C 186 314, 164 312, 152 299 C 136 284, 126 252, 126 218 Z"/>
+        <path transform="rotate(-19 140 216)" d="M129 216 C 126 176 127 120 133 82 C 135 68 152 68 155 82 C 160 122 158 178 153 216 Z"/>
+        <path transform="rotate(-4 172 214)" d="M161 214 C 158 170 159 106 164 62 C 166 48 183 48 185 62 C 190 108 188 172 184 214 Z"/>
+        <path transform="rotate(9 202 213)" d="M192 213 C 189 174 190 118 195 78 C 197 65 212 65 214 78 C 218 120 216 176 212 213 Z"/>
+        <path transform="rotate(24 228 214)" d="M221 214 C 218 184 219 148 223 120 C 225 109 237 109 239 120 C 242 150 240 186 237 214 Z"/>
+        <path d="M130 254 C 110 238 92 212 86 190 C 82 174 96 164 108 174 C 124 190 136 216 142 240 C 144 250 138 258 130 254 Z"/>
+      </g>
+      <!-- 셀 셰이드 (광원 좌상단 → 오른쪽·아래 음영), 실루엣으로 클립 -->
+      <g clip-path="url(#spread-clip)" fill="#f0dcba">
+        <path transform="rotate(-19 140 216)" d="M146 216 C 143 172 144 118 149 82 L 155 82 C 160 122 158 178 153 216 Z"/>
+        <path transform="rotate(-4 172 214)" d="M177 214 C 174 168 175 108 179 62 L 185 62 C 190 108 188 172 184 214 Z"/>
+        <path transform="rotate(9 202 213)" d="M206 213 C 203 172 204 120 208 78 L 214 78 C 218 120 216 176 212 213 Z"/>
+        <path transform="rotate(24 228 214)" d="M231 214 C 229 182 230 148 233 120 L 239 120 C 242 150 240 186 237 214 Z"/>
+        <path d="M126 218 L 234 212 L 233 228 C 196 238 158 238 128 232 Z"/>
+        <path d="M150 288 C 166 302 190 302 208 290 L 207 310 C 186 320 162 318 150 306 Z"/>
+        <path d="M196 300 C 201 324 202 352 201 380 L 207 380 C 209 342 209 314 205 300 Z"/>
+        <path d="M128 240 C 116 228 102 210 94 192 L 104 186 C 116 204 130 224 140 240 L 138 252 Z"/>
+      </g>
+      <!-- 손톱 힌트 -->
+      <g fill="none" stroke="#4e342e" stroke-width="2.5" opacity="0.35">
+        <rect transform="rotate(-19 140 216)" x="135" y="74" width="15" height="17" rx="7"/>
+        <rect transform="rotate(-4 172 214)" x="166" y="54" width="16" height="18" rx="7"/>
+        <rect transform="rotate(9 202 213)" x="197" y="70" width="15" height="17" rx="7"/>
+      </g>
+      <!-- 너클·관절·힘줄 (v1과 동일) -->
+      <g fill="none" stroke="#4e342e" stroke-linecap="round">
+        <path d="M132 212 q 7 -8 15 -2 M163 208 q 8 -8 16 -2 M195 206 q 8 -7 15 -2 M223 208 q 6 -6 12 -1" stroke-width="3.5" opacity="0.5"/>
+        <path d="M133 148 q 9 -4 18 0 M164 132 q 10 -4 19 0 M196 142 q 9 -4 17 0 M224 164 q 7 -3 13 0" stroke-width="3" opacity="0.4"/>
+        <path d="M146 226 C 154 254 162 280 170 296 M198 222 C 196 250 192 276 186 296" stroke-width="2.5" opacity="0.3"/>
+      </g>
+    </g>
     <!-- 주먹: 말린 네 손가락 + 감싼 엄지, 측후면 뷰 -->
     <g id="fist-hand" fill="#fffdf6" stroke="#4e342e" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
       <!-- 팔뚝 -->
@@ -435,6 +480,11 @@ if (SCENE === 'spike') {
   ball.position.set(-0.15, 3.9, -1.15);
   ball.rotation.z = 1.1;
   show('hand-tossL'); show('hand-tossR'); show('typo-toss');
+  if (new URLSearchParams(location.search).get('hand') === '2') {
+    document.querySelectorAll('#hand-tossL use, #hand-tossR use').forEach(function (u) {
+      u.setAttribute('href', '#spread-hand2');
+    });
+  }
 }
 
 effect.render(scene, camera);
