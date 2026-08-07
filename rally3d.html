@@ -167,17 +167,123 @@
       <path d="M156 164 C 156 150, 164 141, 172 142 C 180 144, 183 152, 180 164 Z"/>
       <path d="M120 216 q 16 8 34 6 M160 222 q 16 -2 30 -10" fill="none" stroke-width="3" opacity="0.4"/>
     </g>
+
+    <!-- ══ v2: 셀 셰이딩 세트 (광원 좌상단) ══ -->
+    <clipPath id="clip-spread">
+      <path d="M150 380 C 148 338, 149 312, 153 297 L 205 300 C 209 314, 209 342, 207 380 Z"/>
+      <path d="M126 218 L 234 212 C 238 246, 226 284, 206 300 C 186 314, 164 312, 152 299 C 136 284, 126 252, 126 218 Z"/>
+      <path transform="rotate(-19 140 216)" d="M129 216 C 126 176 127 120 133 82 C 135 68 152 68 155 82 C 160 122 158 178 153 216 Z"/>
+      <path transform="rotate(-4 172 214)" d="M161 214 C 158 170 159 106 164 62 C 166 48 183 48 185 62 C 190 108 188 172 184 214 Z"/>
+      <path transform="rotate(9 202 213)" d="M192 213 C 189 174 190 118 195 78 C 197 65 212 65 214 78 C 218 120 216 176 212 213 Z"/>
+      <path transform="rotate(24 228 214)" d="M221 214 C 218 184 219 148 223 120 C 225 109 237 109 239 120 C 242 150 240 186 237 214 Z"/>
+      <path d="M130 254 C 110 238 92 212 86 190 C 82 174 96 164 108 174 C 124 190 136 216 142 240 C 144 250 138 258 130 254 Z"/>
+    </clipPath>
+    <g id="spread-hand2">
+      <use href="#spread-hand"/>
+      <g clip-path="url(#clip-spread)" fill="#f0dcba">
+        <path transform="rotate(-19 140 216)" d="M146 216 C 143 172 144 118 149 82 L 155 82 C 160 122 158 178 153 216 Z"/>
+        <path transform="rotate(-4 172 214)" d="M177 214 C 174 168 175 108 179 62 L 185 62 C 190 108 188 172 184 214 Z"/>
+        <path transform="rotate(9 202 213)" d="M206 213 C 203 172 204 120 208 78 L 214 78 C 218 120 216 176 212 213 Z"/>
+        <path transform="rotate(24 228 214)" d="M231 214 C 229 182 230 148 233 120 L 239 120 C 242 150 240 186 237 214 Z"/>
+        <path d="M126 218 L 234 212 L 233 228 C 196 238 158 238 128 232 Z"/>
+        <path d="M150 288 C 166 302 190 302 208 290 L 207 310 C 186 320 162 318 150 306 Z"/>
+        <path d="M196 300 C 201 324 202 352 201 380 L 207 380 C 209 342 209 314 205 300 Z"/>
+        <path d="M128 240 C 116 228 102 210 94 192 L 104 186 C 116 204 130 224 140 240 L 138 252 Z"/>
+      </g>
+      <g fill="none" stroke="#4e342e" stroke-width="2.5" opacity="0.35">
+        <rect transform="rotate(-19 140 216)" x="135" y="74" width="15" height="17" rx="7"/>
+        <rect transform="rotate(-4 172 214)" x="166" y="54" width="16" height="18" rx="7"/>
+        <rect transform="rotate(9 202 213)" x="197" y="70" width="15" height="17" rx="7"/>
+      </g>
+    </g>
+    <clipPath id="clip-open">
+      <path d="M86 320 L 90 236 C 91 228, 133 228, 134 236 L 140 320 Z"/>
+      <path d="M68 168 C 68 134 82 120 112 120 C 142 120 156 134 156 166 C 156 200 142 220 112 220 C 84 220 68 202 68 168 Z"/>
+      <path transform="rotate(-7 92 90)" d="M84 130 C 81 104 80 74 84 56 C 86 44 99 44 101 56 C 104 76 103 104 100 130 Z"/>
+      <path transform="rotate(-1 113 84)" d="M105 126 C 103 98 103 62 106 42 C 108 30 121 30 123 42 C 126 64 125 100 122 126 Z"/>
+      <path transform="rotate(5 133 92)" d="M126 128 C 124 104 124 74 127 56 C 129 45 141 45 143 56 C 146 76 145 104 142 128 Z"/>
+      <path transform="rotate(12 150 106)" d="M145 134 C 143 116 143 94 145 80 C 147 70 157 70 159 80 C 161 96 160 118 158 134 Z"/>
+      <path d="M72 178 C 58 168 42 152 34 136 C 28 124 38 112 49 118 C 63 127 74 144 80 160 C 82 168 78 176 72 178 Z"/>
+    </clipPath>
+    <g id="open-hand2">
+      <use href="#open-hand"/>
+      <g clip-path="url(#clip-open)" fill="#f0dcba">
+        <path transform="rotate(-7 92 90)" d="M94 130 C 92 100 92 70 95 56 L 101 56 C 104 76 103 104 100 130 Z"/>
+        <path transform="rotate(-1 113 84)" d="M115 126 C 113 96 113 62 116 42 L 123 42 C 126 64 125 100 122 126 Z"/>
+        <path transform="rotate(5 133 92)" d="M135 128 C 134 102 134 72 136 56 L 143 56 C 146 76 145 104 142 128 Z"/>
+        <path transform="rotate(12 150 106)" d="M152 134 C 151 114 151 94 153 80 L 159 80 C 161 96 160 118 158 134 Z"/>
+        <path d="M126 128 C 148 132 156 148 156 166 C 156 200 142 220 112 220 C 134 214 146 196 146 168 C 146 148 138 134 126 128 Z"/>
+        <path d="M46 120 C 58 128 68 142 76 156 L 80 160 C 82 168 78 176 72 178 C 66 170 56 152 44 134 Z"/>
+        <path d="M126 236 C 128 268 128 300 128 320 L 140 320 C 138 292 136 260 134 236 Z"/>
+      </g>
+      <g fill="none" stroke="#4e342e" stroke-width="2.5" opacity="0.35">
+        <rect transform="rotate(-7 92 90)" x="86" y="50" width="13" height="15" rx="6"/>
+        <rect transform="rotate(-1 113 84)" x="108" y="36" width="14" height="16" rx="6"/>
+      </g>
+    </g>
+    <clipPath id="clip-fist">
+      <path d="M150 300 L 128 210 C 124 196, 196 178, 202 192 L 232 272 Z" transform="rotate(-6 180 240)"/>
+      <path d="M78 118 C 74 92 92 70 122 64 C 156 58 186 70 192 96 C 198 122 190 152 168 166 C 140 182 96 176 84 152 C 79 142 80 130 78 118 Z"/>
+      <path d="M84 116 C 82 100 90 90 100 92 C 108 94 110 104 108 118 C 106 128 88 128 84 116 Z"/>
+      <path d="M110 106 C 108 90 118 80 128 82 C 136 84 139 96 137 110 C 135 122 113 120 110 106 Z"/>
+      <path d="M139 102 C 138 88 148 78 158 82 C 165 85 168 96 166 108 C 164 120 142 116 139 102 Z"/>
+      <path d="M167 104 C 167 92 175 84 183 88 C 189 91 191 100 189 110 C 187 120 169 116 167 104 Z"/>
+      <path d="M86 148 C 96 160 118 168 138 166 C 148 165 150 176 141 180 C 118 188 92 178 80 162 C 74 154 79 144 86 148 Z"/>
+    </clipPath>
+    <g id="fist-hand2">
+      <use href="#fist-hand"/>
+      <g clip-path="url(#clip-fist)" fill="#f0dcba">
+        <path d="M180 90 C 194 108 196 134 186 154 C 172 172 140 180 112 174 C 146 176 172 162 180 138 C 186 120 184 102 176 92 Z"/>
+        <path d="M84 120 C 110 130 160 128 188 112 L 189 122 C 162 138 112 140 84 130 Z"/>
+        <path d="M84 162 C 100 176 124 184 140 180 L 141 180 C 118 188 92 178 80 162 Z"/>
+        <path transform="rotate(-6 180 240)" d="M196 210 C 208 234 220 258 228 276 L 232 272 L 202 192 C 200 196 198 202 196 210 Z"/>
+      </g>
+    </g>
+    <clipPath id="clip-cup">
+      <path d="M118 300 C 120 268, 124 246, 128 234 L 176 236 C 179 250, 181 272, 182 300 Z"/>
+      <path d="M90 204 C 94 184, 118 170, 150 168 C 186 166, 212 178, 216 198 C 218 212, 208 224, 188 228 C 158 233, 116 232, 100 222 C 92 217, 88 211, 90 204 Z"/>
+      <path d="M94 202 C 82 190, 74 174, 76 158 C 78 146, 92 146, 96 158 C 101 172, 104 188, 106 200 Z"/>
+      <path transform="rotate(-8 172 158)" d="M164 178 C 163 164, 165 150, 169 142 C 172 135, 181 136, 182 144 C 184 156, 183 170, 181 180 Z"/>
+      <path transform="rotate(-2 194 156)" d="M187 176 C 186 160, 188 146, 192 138 C 195 131, 204 132, 205 140 C 206 152, 205 166, 203 178 Z"/>
+      <path transform="rotate(6 214 160)" d="M208 178 C 207 164, 209 152, 213 144 C 216 138, 224 139, 225 146 C 226 158, 224 170, 222 180 Z"/>
+      <path transform="rotate(14 230 170)" d="M226 186 C 225 175, 226 165, 229 158 C 232 152, 239 153, 240 160 C 240 170, 238 180, 236 188 Z"/>
+    </clipPath>
+    <g id="cup-hand2">
+      <use href="#cup-hand-g"/>
+      <g clip-path="url(#clip-cup)" fill="#f0dcba">
+        <path d="M100 196 C 120 210 180 210 206 196 C 200 214 176 222 150 222 C 122 222 104 212 100 202 Z"/>
+        <path transform="rotate(-2 194 156)" d="M198 176 C 197 160 199 146 201 140 L 205 140 C 206 152 205 166 203 178 Z"/>
+        <path transform="rotate(6 214 160)" d="M217 178 C 216 164 218 152 220 146 L 225 146 C 226 158 224 170 222 180 Z"/>
+        <path d="M88 196 C 92 184 98 172 104 164 L 96 158 C 88 170 84 184 84 194 Z"/>
+        <path d="M168 236 C 172 258 174 280 174 300 L 182 300 C 181 272 179 250 176 236 Z"/>
+      </g>
+    </g>
+    <clipPath id="clip-plat">
+      <path d="M78 420 C 82 350, 96 270, 116 212 C 122 196, 146 198, 146 214 C 138 276, 132 352, 132 420 Z"/>
+      <path d="M222 420 C 218 350, 206 270, 188 212 C 182 196, 158 198, 158 214 C 164 276, 168 352, 168 420 Z"/>
+      <path d="M112 210 C 104 184, 118 162, 146 158 C 176 154, 196 170, 194 194 C 192 214, 176 226, 150 226 C 128 226, 116 220, 112 210 Z"/>
+      <path d="M132 168 C 130 154, 136 144, 146 142 C 154 141, 160 148, 158 160 Z"/>
+      <path d="M156 164 C 156 150, 164 141, 172 142 C 180 144, 183 152, 180 164 Z"/>
+    </clipPath>
+    <g id="platform2">
+      <use href="#platform-g"/>
+      <g clip-path="url(#clip-plat)" fill="#f0dcba">
+        <path d="M138 216 C 132 278 128 352 128 420 L 132 420 C 132 352 138 276 146 214 Z"/>
+        <path d="M208 214 C 214 278 218 352 218 420 L 222 420 C 218 350 206 270 188 212 C 196 212 203 212 208 214 Z"/>
+        <path d="M114 212 C 126 226 150 230 172 224 C 186 220 192 210 192 200 C 190 214 176 224 152 226 C 132 226 120 220 114 212 Z"/>
+      </g>
+    </g>
   </defs>
 </svg>
 
 <!-- ══ POV 손 오버레이 ══ -->
-<svg id="cup-hand" class="ov hand" viewBox="0 0 300 300" style="left:49%; bottom:5.5vh; width:min(62vw,290px); transform:translateX(-50%) rotate(-3deg)"><use href="#cup-hand-g"/></svg>
-<svg id="platform" class="ov hand" viewBox="0 0 300 420" style="left:55%; bottom:8vh; width:min(64vw,300px); transform:translateX(-50%) rotate(-12deg)"><use href="#platform-g"/></svg>
-<svg id="tossL" class="ov hand" viewBox="0 0 280 380" style="left:-5vw; bottom:0; width:56vw; transform:rotate(8deg) scaleX(-1)"><use href="#spread-hand"/></svg>
-<svg id="tossR" class="ov hand" viewBox="0 0 280 380" style="right:-5vw; bottom:0; width:56vw; transform:rotate(-8deg)"><use href="#spread-hand"/></svg>
-<svg id="reach" class="ov hand" viewBox="0 0 226 320" style="left:-9vw; top:38vh; width:30vw; transform:rotate(22deg)"><use href="#open-hand"/></svg>
-<svg id="fist" class="ov hand" viewBox="0 0 260 300" style="right:-8vw; bottom:-8vh; width:48vw; transform:rotate(-10deg)"><use href="#fist-hand"/></svg>
-<svg id="strikeR" class="ov hand" viewBox="0 0 280 380" style="right:-6vw; top:-4vh; width:52vw; transform:rotate(148deg)"><use href="#spread-hand"/></svg>
+<svg id="cup-hand" class="ov hand" viewBox="0 0 300 300" style="left:49%; bottom:5.5vh; width:min(62vw,290px); transform:translateX(-50%) rotate(-3deg)"><use href="#cup-hand2"/></svg>
+<svg id="platform" class="ov hand" viewBox="0 0 300 420" style="left:55%; bottom:8vh; width:min(64vw,300px); transform:translateX(-50%) rotate(-12deg)"><use href="#platform2"/></svg>
+<svg id="tossL" class="ov hand" viewBox="0 0 280 380" style="left:-5vw; bottom:0; width:56vw; transform:rotate(8deg) scaleX(-1)"><use href="#spread-hand2"/></svg>
+<svg id="tossR" class="ov hand" viewBox="0 0 280 380" style="right:-5vw; bottom:0; width:56vw; transform:rotate(-8deg)"><use href="#spread-hand2"/></svg>
+<svg id="reach" class="ov hand" viewBox="0 0 226 320" style="left:-9vw; top:38vh; width:30vw; transform:rotate(22deg)"><use href="#open-hand2"/></svg>
+<svg id="fist" class="ov hand" viewBox="0 0 260 300" style="right:-8vw; bottom:-8vh; width:48vw; transform:rotate(-10deg)"><use href="#fist-hand2"/></svg>
+<svg id="strikeR" class="ov hand" viewBox="0 0 280 380" style="right:-6vw; top:-4vh; width:52vw; transform:rotate(148deg)"><use href="#spread-hand2"/></svg>
 
 <!-- ══ 실루엣 (점프 서브 아치) ══ -->
 <svg id="silhouette" class="ov" viewBox="0 0 400 420">

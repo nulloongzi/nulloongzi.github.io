@@ -84,6 +84,7 @@ malformed hand, distorted shape, unrealistic texture, blurry
 ## 6. 상태
 
 - [x] 입력 세트 생성 (2026-08-06)
+- [x] **임시 적용: Claude 벡터 셀 셰이딩 v2** (2026-08-06) — 5포즈 전부 음영 면·손톱·관절 디테일 적용해 v4에 통합. AI 생성물이 오면 교체 가능한 구조(`<use href>` 스왑)
 - [ ] 트랙 결정 (A/B 시안 비교)
-- [ ] 5포즈 생성·선별
-- [ ] 코드 통합
+- [ ] 5포즈 AI 생성·선별 — **주의: CCR 세션 환경은 HuggingFace가 네트워크 정책상 차단되어 세션 내 생성 불가.** 로컬 SD/웹 도구(Gemini·ChatGPT 이미지 편집 포함)에서 입력 PNG + 프롬프트로 실행할 것
+- [ ] 코드 통합 (AI 결과물 수령 시)
