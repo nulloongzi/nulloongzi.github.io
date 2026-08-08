@@ -278,37 +278,48 @@ if (renderer && !reduced) {
     new THREE.MeshToonMaterial({ color: 0xa1887f, gradientMap: gradientMap, side: THREE.DoubleSide }));
   bowl.position.set(-3.2, 0, 11); scene.add(bowl);
 
-  // ── 공: 실사 배구공 (미카사 스타일 옐로·블루, 하이큐 3DCG 문법 — 배경은 셀, 공은 리얼) ──
+  // ── 공: 실사 흰 배구공 (클래식 18패널 합성피혁 — 사용자 지정 레퍼런스) ──
   var bC = document.createElement('canvas'); bC.width = 1024; bC.height = 512;
   var bx = bC.getContext('2d');
-  bx.fillStyle = '#f4c216'; bx.fillRect(0, 0, 1024, 512);
-  // 블루 스월 밴드 — 대각으로 감기는 유기적 곡선 (미카사 문법)
-  bx.strokeStyle = '#27509e'; bx.lineWidth = 92; bx.lineCap = 'round';
-  for (var k = 0; k < 4; k++) {
-    var ox = k * 256;
-    bx.beginPath(); bx.moveTo(ox - 60, -20); bx.bezierCurveTo(ox + 210, 130, ox + 40, 330, ox + 300, 540); bx.stroke();
+  bx.fillStyle = '#f8f6f1'; bx.fillRect(0, 0, 1024, 512);
+  // 패널별 미묘한 톤 차 (가죽 느낌)
+  var colW = 1024 / 6;
+  for (var c = 0; c < 6; c++) {
+    bx.fillStyle = (c % 2) ? 'rgba(230,224,210,0.35)' : 'rgba(255,255,255,0.3)';
+    bx.fillRect(c * colW, 0, colW, 512);
   }
-  bx.lineWidth = 60;
-  for (var kb = 0; kb < 4; kb++) {
-    var oxb = kb * 256 + 128;
-    bx.beginPath(); bx.moveTo(oxb + 40, -30); bx.bezierCurveTo(oxb - 120, 160, oxb + 160, 340, oxb - 40, 550); bx.stroke();
+  function seamV(x) {
+    bx.strokeStyle = '#ddd7c9'; bx.lineWidth = 5;
+    bx.beginPath(); bx.moveTo(x, 0); bx.lineTo(x, 512); bx.stroke();
+    bx.strokeStyle = '#cfc7b5'; bx.lineWidth = 2; bx.setLineDash([7, 7]);
+    bx.beginPath(); bx.moveTo(x - 7, 0); bx.lineTo(x - 7, 512); bx.stroke();
+    bx.beginPath(); bx.moveTo(x + 7, 0); bx.lineTo(x + 7, 512); bx.stroke();
+    bx.setLineDash([]);
   }
-  // 패널 경계 흰 실선
-  bx.strokeStyle = 'rgba(255,255,255,0.9)'; bx.lineWidth = 7;
-  for (var k2 = 0; k2 < 4; k2++) {
-    var ox2 = k2 * 256;
-    bx.beginPath(); bx.moveTo(ox2 - 118, -20); bx.bezierCurveTo(ox2 + 152, 130, ox2 - 18, 330, ox2 + 242, 540); bx.stroke();
-    bx.beginPath(); bx.moveTo(ox2 - 2, -20); bx.bezierCurveTo(ox2 + 268, 130, ox2 + 98, 330, ox2 + 358, 540); bx.stroke();
+  function seamH(x0, x1, y) {
+    bx.strokeStyle = '#ddd7c9'; bx.lineWidth = 5;
+    bx.beginPath(); bx.moveTo(x0, y); bx.lineTo(x1, y); bx.stroke();
+    bx.strokeStyle = '#cfc7b5'; bx.lineWidth = 2; bx.setLineDash([7, 7]);
+    bx.beginPath(); bx.moveTo(x0, y - 7); bx.lineTo(x1, y - 7); bx.stroke();
+    bx.beginPath(); bx.moveTo(x0, y + 7); bx.lineTo(x1, y + 7); bx.stroke();
+    bx.setLineDash([]);
   }
-  // 가죽 그레인 (미세 노이즈)
-  for (var n = 0; n < 5200; n++) {
+  for (var v = 0; v <= 6; v++) seamV(v * colW);
+  // 열마다 높이가 엇갈리는 가로 심 (클래식 3분할)
+  for (var c2 = 0; c2 < 6; c2++) {
+    var x0 = c2 * colW, x1 = (c2 + 1) * colW;
+    if (c2 % 2 === 0) { seamH(x0, x1, 176); seamH(x0, x1, 336); }
+    else { seamH(x0, x1, 120); seamH(x0, x1, 392); }
+  }
+  // 가죽 그레인
+  for (var n = 0; n < 4200; n++) {
     var nx = Math.floor((n * 761) % 1024), ny = Math.floor((n * 397) % 512);
-    bx.fillStyle = (n % 2) ? 'rgba(255,255,255,0.045)' : 'rgba(60,40,10,0.05)';
+    bx.fillStyle = (n % 2) ? 'rgba(255,255,255,0.05)' : 'rgba(150,135,110,0.04)';
     bx.fillRect(nx, ny, 2, 2);
   }
   var ballTex = new THREE.CanvasTexture(bC);
   ballTex.anisotropy = 4;
-  var ballMat = new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.42, metalness: 0 });
+  var ballMat = new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.5, metalness: 0 });
   ballMat.userData.outlineParameters = { visible: false };   // 실사 공에는 만화 윤곽선 없음
   var ball = new THREE.Mesh(new THREE.SphereGeometry(0.35, 48, 32), ballMat);
   scene.add(ball);
