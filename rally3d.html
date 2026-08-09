@@ -17,10 +17,12 @@
   }
   #stage { position: fixed; inset: 0; z-index: 0; }
 
-  /* 스크롤 활주로 (내용은 전부 고정 오버레이) */
-  section { position: relative; }
-  .h100 { height: 100vh; } .h140 { height: 140vh; } .h150 { height: 150vh; }
-  .h160 { height: 160vh; } .h170 { height: 170vh; } .h180 { height: 180vh; }
+  /* 단계식 스크롤: 비트 = 페이지, 스냅 필수 (중간 정지 불가) */
+  html { scroll-snap-type: y mandatory; }
+  section {
+    position: relative; height: 100vh; height: 100svh;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
 
   /* ── 오버레이 공통 ── */
   .ov { position: fixed; pointer-events: none; }
@@ -45,7 +47,7 @@
     font-size: clamp(1.15rem, 4.6vw, 1.9rem); font-weight: 700;
     color: var(--dark); line-height: 1.5; margin-bottom: 8px;
     opacity: 0; transform: translateY(18px);
-    transition: opacity .5s ease, transform .5s ease;
+    transition: opacity .55s ease, transform .55s ease;
   }
   .rline.on { opacity: 1; transform: none; }
   .rline.hit {
@@ -87,13 +89,13 @@
 <div id="stage"></div>
 
 <!-- ══ 스크롤 활주로 ══ -->
-<section class="h100" data-beat="hero"></section>
-<section class="h170" data-beat="tossup"></section>
-<section class="h160" data-beat="flight"></section>
-<section class="h150" data-beat="receive"></section>
-<section class="h180" data-beat="settoss"></section>
-<section class="h140" data-beat="spike"></section>
-<section class="h160" data-beat="land"></section>
+<section data-beat="hero"></section>
+<section data-beat="tossup"></section>
+<section data-beat="flight"></section>
+<section data-beat="receive"></section>
+<section data-beat="settoss"></section>
+<section data-beat="spike"></section>
+<section data-beat="land"></section>
 
 <footer>© 누룽지 · 밥은 먹고 다니냐</footer>
 
@@ -396,107 +398,153 @@ if (renderer && !reduced) {
     settoss: [2.9, 1.0, 0.8], spike: [3.4, 1.8, -0.7]
   };
   var CAM_HERO = { p: new V3(13, 7.5, 17), t: new V3(0, 0.6, 0.5), p2: new V3(11.5, 6.8, 15.5), t2: new V3(0, 0.8, 0.5) };
-  var CAM_LAND = { p: new V3(-0.2, 3.4, 7.6), t: new V3(-2.6, 0.5, 9.8), p2: new V3(-0.4, 3.6, 17), t2: new V3(-3.2, 0.9, 11) };
+  var CAM_LAND = { p: new V3(-0.2, 3.4, 7.6), t: new V3(-2.6, 0.5, 9.8), p2: new V3(-2.1, 1.9, 13.9), t2: new V3(-3.2, 1.0, 11) };
+  // 정착 컷: 각 비트가 멈춰 서는 순간의 설계된 구도 (공 온전 + 상단 텍스트 여백)
+  var SETTLE = {
+    tossup:  { p: new V3(3.2, 5.6, 13.4), t: new V3(0.9, 4.6, 9.3) },
+    flight:  { p: new V3(0.6, 2.8, -1.4), t: new V3(-1.8, 1.55, -5.8) },
+    receive: { p: new V3(-3.1, 4.7, 2.8), t: new V3(-0.2, 4.55, -1.2) },
+    settoss: { p: new V3(2.0, 5.0, 4.0),  t: new V3(-0.8, 6.3, -0.7) },
+    spike:   { p: new V3(1.0, 2.3, 7.8),  t: new V3(-1.1, 0.55, 4.2) }
+  };
 
+  var ORDER = ['hero', 'tossup', 'flight', 'receive', 'settoss', 'spike', 'land'];
   var sections = [].slice.call(document.querySelectorAll('section'));
   var typos = {};
-  sections.forEach(function (sc) {
-    var b = sc.getAttribute('data-beat');
-    typos[b] = document.getElementById('typo-' + b);
-  });
+  ORDER.forEach(function (b) { typos[b] = document.getElementById('typo-' + b); });
 
   var ballPos = new V3().copy(P.tossup.A);
   var tmpB = new V3(), tan = new V3(), side = new V3();
-  var desiredP = new V3().copy(CAM_HERO.p);
-  var desiredT = new V3().copy(CAM_HERO.t);
+  var desiredP = new V3().copy(CAM_HERO.p2);
+  var desiredT = new V3().copy(CAM_HERO.t2);
   var smoothP = desiredP.clone(), smoothT = desiredT.clone();
-  var curBeat = null;
   var radialEl = document.getElementById('radial');
 
-  function ballAt(beat, t, out) {
-    if (beat === 'hero') { out.copy(P.tossup.A); return; }
-    if (beat === 'land') { bounce(Math.min(1, t / 0.6), out); return; }
-    var seg = P[beat];
+  // ── 단계식 진행: 스크롤은 목표 비트만 정하고, 이동은 시간이 재생한다 ──
+  var target = 0;        // 스냅으로 정해지는 목표 비트 인덱스
+  var pos = 0;           // 연속 비트 좌표 (float) — 시간 기반으로 target을 향해 비행
+  var SPEED = 1.15;      // 비트/초
+  var shownBeat = null;
+
+  function segBall(idx, t, out) {
+    // idx: 1~5 = tossup..spike 구간, 6 = land 바운드
+    if (idx <= 0) { out.copy(P.tossup.A); return; }
+    if (idx >= 6) { bounce(Math.min(1, t / 0.85), out); return; }
+    var seg = P[ORDER[idx]];
     bez(seg.A, seg.C, seg.B, ez(t), out);
   }
 
-  function update() {
-    var vh = window.innerHeight;
-    var y = window.scrollY + vh * 0.5;
-    var beat = 'land', t = 1;
-    for (var i3 = 0; i3 < sections.length; i3++) {
-      var sc = sections[i3], top = sc.offsetTop, h = sc.offsetHeight;
-      if (y >= top && y < top + h) { beat = sc.getAttribute('data-beat'); t = (y - top) / h; break; }
+  function evalState(p) {
+    // 정착 = 구간 완주: 섹션 N에 멈춰 있으면 구간 N이 t=1까지 재생된 상태
+    if (p <= 1e-5) {
+      segBall(0, 0, ballPos);
+      desiredP.copy(CAM_HERO.p2);
+      desiredT.copy(CAM_HERO.t2);
+      radialEl.style.opacity = 0;
+      return;
     }
-    t = Math.min(1, Math.max(0, t));
+    var idx = Math.max(1, Math.min(6, Math.ceil(p - 1e-5)));
+    var t = Math.min(1, Math.max(0, p - (idx - 1)));
+    segBall(idx, t, ballPos);
 
-    if (beat !== curBeat) {
-      curBeat = beat;
-      Object.keys(typos).forEach(function (k) {
-        if (typos[k]) typos[k].classList.toggle('show', k === beat);
-      });
-    }
-
-    ballAt(beat, t, ballPos);
-
-    if (beat === 'hero') {
-      desiredP.lerpVectors(CAM_HERO.p, CAM_HERO.p2, ez(t));
-      desiredT.lerpVectors(CAM_HERO.t, CAM_HERO.t2, ez(t));
-    } else if (beat === 'land') {
+    if (idx >= 6) {
       desiredP.lerpVectors(CAM_LAND.p, CAM_LAND.p2, ez(t));
       desiredT.lerpVectors(CAM_LAND.t, CAM_LAND.t2, ez(t));
     } else {
-      // 볼캠: 공 뒤를 추적, 진행 방향을 바라봄
-      ballAt(beat, Math.min(1, t + 0.02), tmpB);
+      segBall(idx, Math.min(1, t + 0.02), tmpB);
       tan.subVectors(tmpB, ballPos);
+      if (tan.lengthSq() < 1e-7) segBall(idx, Math.max(0, t - 0.02), tmpB), tan.subVectors(ballPos, tmpB);
       if (tan.lengthSq() < 1e-7) tan.set(0, 0.2, -1);
       tan.normalize();
       side.crossVectors(tan, UP);
       if (side.lengthSq() < 1e-7) side.set(1, 0, 0);
       side.normalize();
-      var cfg = TRAIL[beat];
+      var cfg = TRAIL[ORDER[idx]];
       desiredP.copy(ballPos).addScaledVector(tan, -cfg[0]).addScaledVector(side, cfg[2]);
       desiredP.y += cfg[1];
       if (desiredP.y < 0.55) desiredP.y = 0.55;
       desiredT.copy(ballPos).addScaledVector(tan, 1.6);
+      // 구간 후반: 추적캠 → 정착 구도로 블렌드
+      var st = SETTLE[ORDER[idx]];
+      if (st && t > 0.72) {
+        var kk2 = ez(Math.min(1, (t - 0.72) / 0.28));
+        desiredP.lerp(st.p, kk2);
+        desiredT.lerp(st.t, kk2);
+      }
     }
-
-    // 스파이크 낙하 순간 방사 스피드라인
-    radialEl.style.opacity = (beat === 'spike' && t > 0.55 && t < 0.95) ? 0.5 : 0;
-
-    var tp = typos[beat];
-    if (tp) {
-      tp.querySelectorAll('.rline').forEach(function (ln) {
-        ln.classList.toggle('on', t >= parseFloat(ln.getAttribute('data-at') || '0'));
-      });
-    }
-
-    ball.position.copy(ballPos);
-    ball.rotation.z = -window.scrollY * 0.004;
-    ball.rotation.x = window.scrollY * 0.002;
+    // 스파이크 낙하 통과 중에만 방사 스피드라인
+    radialEl.style.opacity = (idx === 5 && t > 0.5 && t < 0.95) ? 0.5 : 0;
   }
 
-  var last = -1;
-  var snap = true;
-  function frame() {
-    if (window.scrollY !== last) { last = window.scrollY; update(); }
-    var k = snap ? 1 : 0.1;
-    snap = false;
-    smoothP.lerp(desiredP, k);
-    smoothT.lerp(desiredT, k);
+  function setTypo(beat) {
+    if (beat === shownBeat) return;
+    shownBeat = beat;
+    ORDER.forEach(function (b) {
+      var tp = typos[b];
+      if (!tp) return;
+      var on = (b === beat);
+      tp.classList.toggle('show', on);
+      var lines = tp.querySelectorAll('.rline');
+      lines.forEach(function (ln, i) {
+        if (on) {
+          ln.style.transitionDelay = (0.15 + i * 0.28) + 's';
+          ln.classList.add('on');
+        } else {
+          ln.style.transitionDelay = '0s';
+          ln.classList.remove('on');
+        }
+      });
+    });
+  }
+
+  function readTarget() {
+    var vh = window.innerHeight;
+    target = Math.max(0, Math.min(6, Math.round(window.scrollY / vh)));
+  }
+  window.addEventListener('scroll', readTarget, { passive: true });
+  readTarget();
+  pos = target;
+
+  var lastTime = 0;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastTime) / 1000 || 0.016);
+    lastTime = now;
+
+    // pos → target 비행 (가까워질수록 감속)
+    var diff = target - pos;
+    if (Math.abs(diff) > 0.0005) {
+      var step = Math.sign(diff) * Math.min(Math.abs(diff), dt * SPEED * (0.3 + 0.7 * Math.min(1, Math.abs(diff) * 1.6)));
+      pos += step;
+    } else {
+      pos = target;
+    }
+
+    evalState(pos);
+
+    // 도착했을 때만 해당 비트의 텍스트 (이동 중엔 화면에 아무것도 안 띄움)
+    if (pos === target) setTypo(ORDER[target]);
+    else setTypo(null);
+
+    smoothP.lerp(desiredP, 0.14);
+    smoothT.lerp(desiredT, 0.14);
     camera.position.copy(smoothP);
     camera.lookAt(smoothT);
+    ball.position.copy(ballPos);
+    ball.rotation.z = -pos * 2.4;
+    ball.rotation.x = pos * 1.2;
     effect.render(scene, camera);
     requestAnimationFrame(frame);
   }
-  update();
+  evalState(pos);
+  smoothP.copy(desiredP); smoothT.copy(desiredT);
+  setTypo(ORDER[target]);
   requestAnimationFrame(frame);
 
   window.addEventListener('resize', function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    last = -1;
+    readTarget();
   });
 }
 </script>
