@@ -17,12 +17,21 @@
   }
   #stage { position: fixed; inset: 0; z-index: 0; }
 
-  /* 단계식 스크롤: 비트 = 페이지, 스냅 필수 (중간 정지 불가) */
-  html { scroll-snap-type: y mandatory; }
-  section {
-    position: relative; height: 100vh; height: 100svh;
-    scroll-snap-align: start; scroll-snap-stop: always;
+  /* 단계식 스텝: 휠/스와이프는 신호, 이동은 시간 재생 (네이티브 스크롤 없음) */
+  body.stepper { overflow: hidden; height: 100vh; height: 100svh; overscroll-behavior: none; }
+  body.stepper footer { display: none; }
+  section { position: relative; height: 100vh; height: 100svh; }
+  /* 진행 도트 */
+  #dots {
+    position: fixed; right: 12px; top: 50%; transform: translateY(-50%);
+    z-index: 5; display: flex; flex-direction: column; gap: 10px;
   }
+  #dots button {
+    width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0;
+    background: rgba(141,110,99,.35); cursor: pointer; transition: all .3s;
+  }
+  #dots button.on { background: var(--gold); transform: scale(1.4); }
+  body.static #dots { display: none; }
 
   /* ── 오버레이 공통 ── */
   .ov { position: fixed; pointer-events: none; }
@@ -154,6 +163,7 @@
       <a class="btn primary" href="https://do.nulloongzi.com/">누룽지도 열어보기</a>
       <a class="btn ghost" href="https://www.instagram.com/null_oongzi">Instagram</a>
     </span>
+    <div style="margin-top:26px; font-size:.85rem; font-weight:500; color:var(--brown)">© 누룽지 · 밥은 먹고 다니냐</div>
   </div>
 </div>
 
@@ -278,6 +288,7 @@ if (renderer && !reduced) {
   ];
   var bowl = new THREE.Mesh(new THREE.LatheGeometry(bowlPts, 28),
     new THREE.MeshToonMaterial({ color: 0xa1887f, gradientMap: gradientMap, side: THREE.DoubleSide }));
+  bowl.scale.setScalar(0.58);
   bowl.position.set(-3.2, 0, 11); scene.add(bowl);
 
   // ── 공: 실사 흰 배구공 (클래식 18패널 합성피혁 — 사용자 지정 레퍼런스) ──
@@ -359,11 +370,12 @@ if (renderer && !reduced) {
   function ez(t) { return t * t * (3 - 2 * t); }
 
   var HOPS = [
+    { a: new V3(-1.0, 1.9, 3.0), b: new V3(-1.1, 0.36, 4.2), h: 0 },   // 정지 컷에서 이어지는 마지막 낙하
     { a: new V3(-1.1, 0.36, 4.2), b: new V3(-1.7, 0.36, 6.4), h: 2.0 },
     { a: new V3(-1.7, 0.36, 6.4), b: new V3(-2.3, 0.36, 8.2), h: 1.1 },
     { a: new V3(-2.3, 0.36, 8.2), b: new V3(-2.8, 0.36, 9.6), h: 0.55 },
     { a: new V3(-2.8, 0.36, 9.6), b: new V3(-3.05, 0.36, 10.4), h: 0.28 },
-    { a: new V3(-3.05, 0.36, 10.4), b: new V3(-3.2, 0.68, 11), h: 0.6 }
+    { a: new V3(-3.05, 0.36, 10.4), b: new V3(-3.2, 0.52, 11), h: 0.6 }
   ];
   function bounce(t, out) {
     var SETTLE = 0.1;
@@ -390,7 +402,7 @@ if (renderer && !reduced) {
     flight: { A: new V3(0.9, 4.6, 9.3),   C: new V3(0, 7.4, 1.5),     B: new V3(-1.8, 1.4, -5.8) },
     receive:{ A: new V3(-1.8, 1.4, -5.8), C: new V3(-1.2, 6.0, -3.8), B: new V3(-0.2, 4.9, -1.2) },
     settoss:{ A: new V3(-0.2, 4.9, -1.2), C: new V3(-0.6, 1.5, -0.9), B: new V3(-0.8, 4.9, -0.7) },
-    spike:  { A: new V3(-0.8, 4.9, -0.7), C: new V3(-0.95, 4.2, 0.3), B: new V3(-1.1, 0.37, 4.2) }
+    spike:  { A: new V3(-0.8, 4.9, -0.7), C: new V3(-0.95, 4.3, 0.9), B: new V3(-1.0, 1.9, 3.0) }
   };
   // 볼캠 파라미터: [뒤따르는 거리, 높이 오프셋, 측면 오프셋]
   var TRAIL = {
@@ -398,14 +410,14 @@ if (renderer && !reduced) {
     settoss: [2.9, 1.0, 0.8], spike: [3.4, 1.8, -0.7]
   };
   var CAM_HERO = { p: new V3(13, 7.5, 17), t: new V3(0, 0.6, 0.5), p2: new V3(11.5, 6.8, 15.5), t2: new V3(0, 0.8, 0.5) };
-  var CAM_LAND = { p: new V3(-0.2, 3.4, 7.6), t: new V3(-2.6, 0.5, 9.8), p2: new V3(-2.1, 1.9, 13.9), t2: new V3(-3.2, 1.0, 11) };
+  var CAM_LAND = { p: new V3(-0.2, 3.4, 7.6), t: new V3(-2.6, 0.5, 9.8), p2: new V3(-2.2, 1.5, 13.2), t2: new V3(-3.2, 0.8, 11) };
   // 정착 컷: 각 비트가 멈춰 서는 순간의 설계된 구도 (공 온전 + 상단 텍스트 여백)
   var SETTLE = {
     tossup:  { p: new V3(3.2, 5.6, 13.4), t: new V3(0.9, 4.6, 9.3) },
     flight:  { p: new V3(0.6, 2.8, -1.4), t: new V3(-1.8, 1.55, -5.8) },
     receive: { p: new V3(-3.1, 4.7, 2.8), t: new V3(-0.2, 4.55, -1.2) },
     settoss: { p: new V3(2.0, 5.0, 4.0),  t: new V3(-0.8, 6.3, -0.7) },
-    spike:   { p: new V3(1.0, 2.3, 7.8),  t: new V3(-1.1, 0.55, 4.2) }
+    spike:   { p: new V3(1.6, 2.9, 6.8),  t: new V3(-1.0, 2.25, 3.0) }
   };
 
   var ORDER = ['hero', 'tossup', 'flight', 'receive', 'settoss', 'spike', 'land'];
@@ -473,7 +485,7 @@ if (renderer && !reduced) {
       }
     }
     // 스파이크 낙하 통과 중에만 방사 스피드라인
-    radialEl.style.opacity = (idx === 5 && t > 0.5 && t < 0.95) ? 0.5 : 0;
+    radialEl.style.opacity = (idx === 5 && t > 0.5) ? 0.5 : 0;
   }
 
   function setTypo(beat) {
@@ -497,12 +509,46 @@ if (renderer && !reduced) {
     });
   }
 
-  function readTarget() {
-    var vh = window.innerHeight;
-    target = Math.max(0, Math.min(6, Math.round(window.scrollY / vh)));
+  document.body.classList.add('stepper');
+  // 진행 도트
+  var dotsBox = document.createElement('div');
+  dotsBox.id = 'dots';
+  for (var di = 0; di < 7; di++) {
+    var dbtn = document.createElement('button');
+    dbtn.setAttribute('aria-label', '비트 ' + (di + 1));
+    (function (n) { dbtn.addEventListener('click', function () { target = n; }); })(di);
+    dotsBox.appendChild(dbtn);
   }
-  window.addEventListener('scroll', readTarget, { passive: true });
-  readTarget();
+  document.body.appendChild(dotsBox);
+  function paintDots() {
+    [].forEach.call(dotsBox.children, function (d, i) { d.classList.toggle('on', i === target); });
+  }
+  var lastStep = 0;
+  function step(dir) {
+    var now = performance.now();
+    if (now - lastStep < 450) return;
+    lastStep = now;
+    target = Math.max(0, Math.min(6, target + dir));
+  }
+  var wheelAcc = 0;
+  window.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    wheelAcc += e.deltaY;
+    if (Math.abs(wheelAcc) > 55) { step(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; }
+  }, { passive: false });
+  var touchY = null;
+  window.addEventListener('touchstart', function (e) { touchY = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+  window.addEventListener('touchend', function (e) {
+    if (touchY === null) return;
+    var dy = touchY - e.changedTouches[0].clientY;
+    if (Math.abs(dy) > 45) step(dy > 0 ? 1 : -1);
+    touchY = null;
+  });
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); step(1); }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); step(-1); }
+  });
   pos = target;
 
   var lastTime = 0;
@@ -524,6 +570,7 @@ if (renderer && !reduced) {
     // 도착했을 때만 해당 비트의 텍스트 (이동 중엔 화면에 아무것도 안 띄움)
     if (pos === target) setTypo(ORDER[target]);
     else setTypo(null);
+    paintDots();
 
     smoothP.lerp(desiredP, 0.14);
     smoothT.lerp(desiredT, 0.14);
@@ -544,7 +591,6 @@ if (renderer && !reduced) {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    readTarget();
   });
 }
 </script>
