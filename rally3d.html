@@ -314,50 +314,67 @@ if (renderer && !reduced) {
   bowl.scale.setScalar(0.58);
   bowl.position.set(-3.2, 0, 11); scene.add(bowl);
 
-  // ── 공: 실사 흰 배구공 (클래식 18패널 합성피혁 — 사용자 지정 레퍼런스) ──
-  var bC = document.createElement('canvas'); bC.width = 1024; bC.height = 512;
-  var bx = bC.getContext('2d');
-  bx.fillStyle = '#f8f6f1'; bx.fillRect(0, 0, 1024, 512);
-  // 패널별 미묘한 톤 차 (가죽 느낌)
-  var colW = 1024 / 6;
-  for (var c = 0; c < 6; c++) {
-    bx.fillStyle = (c % 2) ? 'rgba(230,224,210,0.35)' : 'rgba(255,255,255,0.3)';
-    bx.fillRect(c * colW, 0, colW, 512);
-  }
-  function seamV(x) {
-    bx.strokeStyle = '#ddd7c9'; bx.lineWidth = 5;
-    bx.beginPath(); bx.moveTo(x, 0); bx.lineTo(x, 512); bx.stroke();
-    bx.strokeStyle = '#cfc7b5'; bx.lineWidth = 2; bx.setLineDash([7, 7]);
-    bx.beginPath(); bx.moveTo(x - 7, 0); bx.lineTo(x - 7, 512); bx.stroke();
-    bx.beginPath(); bx.moveTo(x + 7, 0); bx.lineTo(x + 7, 512); bx.stroke();
-    bx.setLineDash([]);
-  }
-  function seamH(x0, x1, y) {
-    bx.strokeStyle = '#ddd7c9'; bx.lineWidth = 5;
-    bx.beginPath(); bx.moveTo(x0, y); bx.lineTo(x1, y); bx.stroke();
-    bx.strokeStyle = '#cfc7b5'; bx.lineWidth = 2; bx.setLineDash([7, 7]);
-    bx.beginPath(); bx.moveTo(x0, y - 7); bx.lineTo(x1, y - 7); bx.stroke();
-    bx.beginPath(); bx.moveTo(x0, y + 7); bx.lineTo(x1, y + 7); bx.stroke();
-    bx.setLineDash([]);
-  }
-  for (var v = 0; v <= 6; v++) seamV(v * colW);
-  // 열마다 높이가 엇갈리는 가로 심 (클래식 3분할)
-  for (var c2 = 0; c2 < 6; c2++) {
-    var x0 = c2 * colW, x1 = (c2 + 1) * colW;
-    if (c2 % 2 === 0) { seamH(x0, x1, 176); seamH(x0, x1, 336); }
-    else { seamH(x0, x1, 120); seamH(x0, x1, 392); }
-  }
-  // 가죽 그레인
-  for (var n = 0; n < 4200; n++) {
-    var nx = Math.floor((n * 761) % 1024), ny = Math.floor((n * 397) % 512);
-    bx.fillStyle = (n % 2) ? 'rgba(255,255,255,0.05)' : 'rgba(150,135,110,0.04)';
-    bx.fillRect(nx, ny, 2, 2);
-  }
-  var ballTex = new THREE.CanvasTexture(bC);
-  ballTex.anisotropy = 4;
-  var ballMat = new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.5, metalness: 0 });
-  ballMat.userData.outlineParameters = { visible: false };   // 실사 공에는 만화 윤곽선 없음
-  var ball = new THREE.Mesh(new THREE.SphereGeometry(0.35, 48, 32), ballMat);
+  // ── 공: 실사 흰 배구공 — 진짜 18패널 핀휠을 3D 방향으로 생성 (극점 수렴 없음) ──
+  var BW = 1536, BH = 768;
+  var cCol = document.createElement('canvas'); cCol.width = BW; cCol.height = BH;
+  var cBump = document.createElement('canvas'); cBump.width = BW; cBump.height = BH;
+  (function buildBall() {
+    var ctxC = cCol.getContext('2d'), ctxB = cBump.getContext('2d');
+    var imgC = ctxC.createImageData(BW, BH), imgB = ctxB.createImageData(BW, BH);
+    var dC = imgC.data, dB = imgB.data;
+    var THIRD = 1 / 3;
+    for (var py = 0; py < BH; py++) {
+      var theta = (py + 0.5) / BH * Math.PI;
+      var sy = Math.cos(theta), sr = Math.sin(theta);
+      for (var px = 0; px < BW; px++) {
+        var phi = (px + 0.5) / BW * Math.PI * 2;
+        var sx = Math.cos(phi) * sr, sz = Math.sin(phi) * sr;
+        var ax = Math.abs(sx), ay = Math.abs(sy), az = Math.abs(sz);
+        var maj, second, stripe, faceId;
+        if (ax >= ay && ax >= az) { maj = ax; second = Math.max(ay, az); stripe = sy / ax; faceId = sx > 0 ? 0 : 1; }
+        else if (ay >= ax && ay >= az) { maj = ay; second = Math.max(ax, az); stripe = sz / ay; faceId = sy > 0 ? 2 : 3; }
+        else { maj = az; second = Math.max(ax, ay); stripe = sx / az; faceId = sz > 0 ? 4 : 5; }
+        // 경계까지의 거리: 스트라이프 경계(±1/3) + 면 경계
+        var dStripe = Math.min(Math.abs(stripe - THIRD), Math.abs(stripe + THIRD)) * 0.62;
+        var dFace = (maj - second) * 0.85;
+        var e = Math.min(dStripe, dFace);
+        // 패널 인덱스(18) → 미세한 톤 차
+        var si = stripe > THIRD ? 2 : (stripe < -THIRD ? 0 : 1);
+        var tint = ((faceId * 3 + si) % 5) * 1.7 - 3;
+        // 홈 프로파일: 어두운 골 + 살짝 밝은 가장자리
+        var GW = 0.028, SW = 0.012;
+        var groove = e < GW ? Math.pow(1 - e / GW, 1.7) : 0;
+        var lip = (e > GW * 0.75 && e < GW * 2.1) ? 0.35 * (1 - Math.abs(e - GW * 1.4) / (GW * 0.7)) : 0;
+        // 스티치: 홈 양옆의 점선
+        var stitchBand = (e > GW * 1.15 && e < GW * 1.75);
+        var sPhase = ((px * 0.9 + py * 0.9) % 26);
+        var stitch = (stitchBand && sPhase < 11) ? 0.5 : 0;
+        // 가죽 그레인
+        var grain = (((px * 92821 ^ py * 68917) >>> 8) & 15) * 0.35 - 2.6;
+        var base = 246 + tint + grain;
+        var val = base - groove * 62 - stitch * 34 + lip * 10;
+        var i = (py * BW + px) * 4;
+        dC[i] = Math.max(0, Math.min(255, val));
+        dC[i + 1] = Math.max(0, Math.min(255, val - 2));
+        dC[i + 2] = Math.max(0, Math.min(255, val - 9));
+        dC[i + 3] = 255;
+        var bv = 200 - groove * 150 - stitch * 26 + lip * 26;
+        dB[i] = dB[i + 1] = dB[i + 2] = Math.max(0, Math.min(255, bv));
+        dB[i + 3] = 255;
+      }
+    }
+    ctxC.putImageData(imgC, 0, 0);
+    ctxB.putImageData(imgB, 0, 0);
+  })();
+  var ballTex = new THREE.CanvasTexture(cCol);
+  var ballBump = new THREE.CanvasTexture(cBump);
+  ballTex.anisotropy = ballBump.anisotropy = 8;
+  var ballMat = new THREE.MeshPhysicalMaterial({
+    map: ballTex, bumpMap: ballBump, bumpScale: 0.02,
+    roughness: 0.5, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.42
+  });
+  ballMat.userData.outlineParameters = { visible: false };
+  var ball = new THREE.Mesh(new THREE.SphereGeometry(0.35, 64, 48), ballMat);
   scene.add(ball);
   // 공 하이라이트용 보조광 (실사 광택)
   var ballKey = new THREE.DirectionalLight(0xfff6e0, 1.1);
@@ -442,8 +459,8 @@ if (renderer && !reduced) {
     tossup:  [4.6, 22, 10],
     flight:  [5.2, 196, 12],
     receive: [5.6, 214, 6],
-    settoss: [5.4, 38, 4],
-    spike:   [5.0, 16, 15],
+    settoss: [7.2, 88, 13],    // +x 사이드라인에서 네트 라인을 따라 봄 → 공 뒤로 안테나·지주
+    spike:   [4.6, 205, 27],   // 공 뒤(네트 쪽)에서 코트를 우하단으로 내려봄
     land:    [3.1, 34, 14]
   };
   var _dir = new V3(), _fwd = new V3(), _rgt = new V3(), _up2 = new V3();
