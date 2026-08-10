@@ -36,8 +36,12 @@
   /* ── 오버레이 공통 ── */
   .ov { position: fixed; pointer-events: none; }
 
-  /* 스피드라인 */
-  #radial { inset: 0; z-index: 2; opacity: 0; }
+  /* 스피드라인: 소실점 = 공 (JS가 매 프레임 공의 화면 좌표에 중심을 붙임) */
+  #radial {
+    z-index: 2; opacity: 0; width: 110vmax; height: 110vmax;
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+    transition: opacity .25s;
+  }
 
 
   /* ── 타이포 (장면 결합, 박스 없음) ── */
@@ -345,10 +349,10 @@ if (renderer && !reduced) {
   var rl = document.getElementById('rl');
   for (var i = 0; i < 46; i++) {
     var ang = (i / 46) * Math.PI * 2 + (i % 3) * 0.03;
-    var cxr = 50 + Math.cos(ang) * 74, cyr = 50 + Math.sin(ang) * 74;
-    var r1 = 26 + (i % 5) * 3.5;
+    var cxr = 50 + Math.cos(ang) * 78, cyr = 50 + Math.sin(ang) * 78;
+    var r1 = 13 + (i % 5) * 2;
     var x1 = 50 + Math.cos(ang) * r1, y1 = 50 + Math.sin(ang) * r1;
-    var wHalf = 0.5 + (i % 4) * 0.28;
+    var wHalf = 0.35 + (i % 4) * 0.2;
     var perp = ang + Math.PI / 2;
     var px = Math.cos(perp) * wHalf, py = Math.sin(perp) * wHalf;
     var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
@@ -576,6 +580,12 @@ if (renderer && !reduced) {
     smoothT.lerp(desiredT, 0.14);
     camera.position.copy(smoothP);
     camera.lookAt(smoothT);
+    camera.updateMatrixWorld();
+    if (radialEl.style.opacity !== '0' && radialEl.style.opacity !== '') {
+      var pv = tmpB.copy(ballPos).project(camera);
+      radialEl.style.left = ((pv.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+      radialEl.style.top = ((-pv.y * 0.5 + 0.5) * window.innerHeight) + 'px';
+    }
     ball.position.copy(ballPos);
     ball.rotation.z = -pos * 2.4;
     ball.rotation.x = pos * 1.2;
