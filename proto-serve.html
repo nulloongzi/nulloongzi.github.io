@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>프로토타입 — 서브 국면 (연필 스케치 + 실루엣)</title>
+<link rel="stylesheet" as="style" crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root { --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --text:#3e2f2a; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:"Pretendard Variable",Pretendard,-apple-system,system-ui,"Apple SD Gothic Neo",sans-serif;
+    background:var(--cream); color:var(--text); line-height:1.7; overflow-x:hidden;
+  }
+  #stage { position:fixed; inset:0; z-index:0; }
+  #stage canvas { display:block; }
+
+  .tag {
+    position:fixed; top:12px; left:16px; z-index:20; font-size:.78rem; font-weight:700;
+    color:var(--brown); background:rgba(255,248,225,.8); padding:5px 12px; border-radius:999px;
+    border:1px solid rgba(141,110,99,.25);
+  }
+  .knobs {
+    position:fixed; top:12px; right:16px; z-index:20; display:flex; flex-direction:column; gap:6px;
+    background:rgba(255,248,225,.86); padding:10px 12px; border-radius:14px;
+    border:1px solid rgba(141,110,99,.22); font-size:.72rem; color:var(--brown);
+  }
+  .knobs label { display:flex; align-items:center; gap:8px; justify-content:space-between; }
+  .knobs input { width:96px; }
+
+  section { min-height:100vh; position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; padding:12vh 20px; }
+  .inner {
+    max-width:470px; width:100%;
+    background:rgba(255,248,225,.86); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+    border-radius:22px; border:1px solid rgba(141,110,99,.14); padding:30px 30px 26px;
+    box-shadow:0 8px 32px rgba(93,64,55,.10);
+  }
+  @media (min-width:900px){ section{ align-items:flex-start; padding-left:5vw; } }
+  .hero-sec { align-items:center; text-align:center; }
+  .hero-sec .inner { background:none; border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; max-width:620px; }
+  .hero-sec h1 { font-size:clamp(2.2rem,7vw,3.2rem); font-weight:800; color:var(--dark); margin-bottom:8px; }
+  .hero-sec .sub { color:var(--brown); }
+  .phase { font-size:.82rem; font-weight:800; letter-spacing:.18em; color:var(--brown); display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .phase::before { content:""; width:26px; height:3px; background:var(--yellow); border-radius:2px; }
+  .phase-ko { font-size:clamp(1.7rem,5.4vw,2.4rem); font-weight:800; color:var(--dark); line-height:1.25; margin-bottom:20px; }
+  .q { font-weight:700; color:var(--brown); margin-bottom:12px; }
+  .q::before { content:"Q. "; color:var(--yellow); -webkit-text-stroke:.5px var(--brown); }
+  .a p { margin-bottom:13px; }
+  .a p:last-child { margin-bottom:0; }
+  .a strong { color:var(--dark); }
+  footer { position:relative; z-index:2; text-align:center; padding:30px 20px 50px; color:var(--brown); font-size:.82rem; background:var(--cream); }
+</style>
+</head>
+<body>
+
+<div id="stage" aria-hidden="true"></div>
+<div class="tag">프로토타입 · 서브 국면 · 연필 스케치 + 실루엣</div>
+<div class="knobs">
+  <label>선 굵기 <input id="kEdge" type="range" min="0.2" max="3" step="0.1" value="1.3"></label>
+  <label>손떨림 <input id="kWob" type="range" min="0" max="3" step="0.1" value="1.2"></label>
+  <label>스크린톤 <input id="kTone" type="range" min="0" max="1" step="0.05" value="0.85"></label>
+  <label>종이결 <input id="kPaper" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+  <label>집중선 <input id="kSpeed" type="range" min="0" max="1" step="0.05" value="0.45"></label>
+</div>
+
+<main>
+  <section class="hero-sec">
+    <div class="inner">
+      <h1>누룽지의 랠리</h1>
+      <div class="sub">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="inner">
+      <div class="phase">Serve</div>
+      <div class="phase-ko">서브 — 시작</div>
+      <div class="q">배구, 어떻게 시작했어요?</div>
+      <div class="a">
+        <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
+        <p>만화처럼은 아니어도, <strong>친구들이랑 배구를 할 수 있다는 것 자체</strong>가 좋았어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="inner">
+      <div class="q">왜 '누룽지'예요?</div>
+      <div class="a">
+        <p>한때 null(눌)이라는 이름으로 음악을 했었어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>프로토타입입니다 — 방향 확인용. 본 페이지는 <a href="/">nulloongzi.com</a></footer>
+
+<script type="module">
+import * as THREE from './assets/vendor/three.module.min.js';
+
+const stage = document.getElementById('stage');
+const INK = 0x2f2320;      // 먹선
+const PAPER = 0xfff8e1;    // 종이
+const TONE = 0xffd83d;     // 스크린톤으로 치환될 마커 색 (합성 단계에서 점 패턴이 된다)
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(PAPER);
+
+const BASE_FOV = 50, DESIGN_ASPECT = 1.6;
+const H_HALF = Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV)/2) * DESIGN_ASPECT);
+const camera = new THREE.PerspectiveCamera(BASE_FOV, innerWidth/innerHeight, 0.1, 100);
+
+// ── 실루엣: 2D 관절 스켈레톤을 캔버스에 통짜로 그려 텍스처로 쓴다.
+// 3D 프리미티브로 사람을 만들면 다시 '빈 캐릭터'가 된다 — 납작한 먹 실루엣은 그 함정을 피한다.
+function figureTexture(pose, w = 256, h = 384) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  const P = (p) => [p[0]*w, p[1]*h];
+  x.clearRect(0,0,w,h);
+  x.fillStyle = x.strokeStyle = '#000';
+  x.lineJoin = x.lineCap = 'round';
+
+  // 굵기가 일정한 막대는 스틱맨으로 읽힌다 — 관절에서 끝으로 가늘어지는 테이퍼를 준다.
+  // 다리 → 몸통 → 팔 → 머리 순으로 겹쳐 그리면 실루엣이 자연스럽게 합쳐진다.
+  const limb = (a, b, w1, w2) => {
+    const [ax,ay] = P(a), [bx,by] = P(b);
+    const dx = bx-ax, dy = by-ay, len = Math.hypot(dx,dy) || 1;
+    const nx = -dy/len, ny = dx/len;
+    const r1 = w1*w/2, r2 = w2*w/2;
+    x.beginPath();
+    x.moveTo(ax+nx*r1, ay+ny*r1); x.lineTo(bx+nx*r2, by+ny*r2);
+    x.lineTo(bx-nx*r2, by-ny*r2); x.lineTo(ax-nx*r1, ay-ny*r1);
+    x.closePath(); x.fill();
+    x.beginPath(); x.arc(ax,ay,r1,0,Math.PI*2); x.fill();
+    x.beginPath(); x.arc(bx,by,r2,0,Math.PI*2); x.fill();
+  };
+  limb(pose.hipB, pose.kneeB, .088, .062); limb(pose.kneeB, pose.footB, .062, .038);
+  limb(pose.hipF, pose.kneeF, .090, .064); limb(pose.kneeF, pose.footF, .064, .040);
+
+  // 몸통: 어깨~골반 사다리꼴 + 곡선
+  x.beginPath();
+  const sL = P(pose.shoulderB), sR = P(pose.shoulderF), hL = P(pose.hipB), hR = P(pose.hipF);
+  x.moveTo(sL[0], sL[1]);
+  x.quadraticCurveTo((sL[0]+hL[0])/2 - w*.035, (sL[1]+hL[1])/2, hL[0], hL[1]);
+  x.lineTo(hR[0], hR[1]);
+  x.quadraticCurveTo((sR[0]+hR[0])/2 + w*.035, (sR[1]+hR[1])/2, sR[0], sR[1]);
+  x.closePath(); x.fill();
+  x.lineWidth = .085 * w; x.stroke();      // 어깨선 둥글리기
+
+  limb(pose.shoulderB, pose.elbowB, .058, .046); limb(pose.elbowB, pose.handB, .046, .030);
+  limb(pose.shoulderF, pose.elbowF, .060, .048); limb(pose.elbowF, pose.handF, .048, .032);
+
+  // 머리 + 목 (머리가 크면 캐릭터가 아기처럼 보인다 — 7~7.5등신 쪽으로)
+  limb(pose.neck, pose.head, .052, .046);
+  const [hx, hy] = P(pose.head);
+  x.beginPath(); x.ellipse(hx, hy, w*.070, h*.050, pose.headTilt || 0, 0, Math.PI*2); x.fill();
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+
+// 포즈 — 정규 좌표(0..1). x 는 왼쪽이 네트 방향.
+const POSE_SERVE = {   // 토스 직후 — 한 팔은 공을 올리고, 때리는 팔은 팔꿈치를 세워 머리 뒤로 당긴다
+  head:[.50,.11], neck:[.50,.20], headTilt:-.12,
+  shoulderB:[.43,.24], shoulderF:[.57,.24],
+  elbowB:[.36,.16], handB:[.30,.05],        // 토스 팔 — 위로 뻗음
+  elbowF:[.71,.19], handF:[.66,.33],        // 때리는 팔 — 팔꿈치 높이 세우고 손은 머리 뒤
+  hipB:[.45,.52], hipF:[.55,.52],
+  kneeB:[.61,.72], footB:[.68,.94],
+  kneeF:[.38,.72], footF:[.31,.93]
+};
+const POSE_READY = {   // 리시브 준비 — 무릎 굽히고 두 팔 모아 앞으로
+  head:[.50,.13], neck:[.50,.21], headTilt:.05,
+  shoulderB:[.43,.25], shoulderF:[.57,.25],
+  elbowB:[.38,.40], handB:[.46,.52],
+  elbowF:[.62,.40], handF:[.52,.53],
+  hipB:[.44,.52], hipF:[.56,.52],
+  kneeB:[.37,.71], footB:[.34,.93],
+  kneeF:[.64,.71], footF:[.68,.93]
+};
+
+function silhouette(pose, x, z, scale = 1, flip = false) {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.35 * scale, 2.05 * scale),
+    new THREE.MeshBasicMaterial({
+      map: figureTexture(pose), transparent: true, alphaTest: .45,
+      color: INK, side: THREE.DoubleSide, depthWrite: true
+    })
+  );
+  m.position.set(x, 1.02 * scale, z);
+  m.scale.x = flip ? -1 : 1;
+  m.userData.billboard = true;     // 항상 카메라를 본다 (납작한 판이 옆에서 사라지지 않게)
+  // 레이어 1 — 법선 패스에서 제외한다. override 머티리얼은 알파맵을 잃어서
+  // 투명한 판이 통짜 사각형으로 잡히고, 엣지 검출이 인물 주위에 네모를 그려버린다.
+  m.layers.set(1);
+  scene.add(m);
+  return m;
+}
+
+// ── 코트: 선으로만 읽히도록 전부 종이색. 엣지 검출이 알아서 먹선을 그린다 ──
+const paperMat = new THREE.MeshBasicMaterial({ color: PAPER });
+const toneMat  = new THREE.MeshBasicMaterial({ color: TONE });   // 합성 단계에서 점 패턴
+const inkMat   = new THREE.MeshBasicMaterial({ color: INK });
+
+// 바닥 평면은 두지 않는다 — 종이가 곧 바닥이다.
+// (거대한 평면을 깔면 지평선 근처에서 깊이 기울기가 폭주해 검은 얼룩이 생긴다. 만화적으로도 코트만 떠 있는 편이 낫다.)
+function quad(w,d,x,z,mat){
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w,d), mat);
+  m.rotation.x = -Math.PI/2; m.position.set(x, .01, z); scene.add(m); return m;
+}
+quad(9,3,0,1.5,toneMat); quad(9,3,0,-1.5,toneMat);      // 전위(어택존)만 스크린톤
+
+// 코트 선 — 두께 있는 박스는 모서리가 겹쳐 두 줄로 보인다. 순수 선으로 긋는다.
+{
+  const seg = [], y = .015;
+  const add = (x1,z1,x2,z2) => seg.push(x1,y,z1, x2,y,z2);
+  add(-4.5,-9,-4.5,9); add(4.5,-9,4.5,9);          // 사이드
+  add(-4.5,9,4.5,9);   add(-4.5,-9,4.5,-9);        // 엔드
+  add(-4.5,3,4.5,3);   add(-4.5,-3,4.5,-3);        // 어택(3m)
+  add(-4.5,0,4.5,0);                                // 센터
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(seg,3));
+  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: INK })));
+}
+
+// 네트 — 기둥·밴드는 면, 그물은 선 세그먼트(LineSegments 라 그 자체가 먹선)
+[-5.1,5.1].forEach(x=>{
+  const p = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,2.55,8), paperMat);
+  p.position.set(x,1.275,0); scene.add(p);
+});
+const band = new THREE.Mesh(new THREE.BoxGeometry(10.2,.14,.04), paperMat);
+band.position.set(0,2.42,0); scene.add(band);
+{
+  // 그물은 성기게 — 촘촘하면 원경에서 검은 얼룩으로 뭉친다
+  const pts = [];
+  for (let i=0;i<=14;i++){ const x=-5.1+i*(10.2/14); pts.push(x,1.42,0, x,2.35,0); }
+  for (let j=0;j<=4;j++){ const y=1.42+j*(.93/4); pts.push(-5.1,y,0, 5.1,y,0); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: INK, transparent:true, opacity:.3 })));
+}
+[-4.5,4.5].forEach(x=>{   // 안테나
+  const a = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1.7,6), inkMat);
+  a.position.set(x,2.97,0); scene.add(a);
+});
+
+// 공 — 종이색 구 + 솔기선. 실루엣과 대비되도록 흰 공으로 둔다
+const ball = new THREE.Mesh(new THREE.SphereGeometry(.35,20,14), paperMat);
+scene.add(ball);
+{
+  const seam = new THREE.BufferGeometry();
+  const pts = [];
+  for (let k=0;k<3;k++){
+    const rot = k * Math.PI/3;
+    for (let i=0;i<40;i++){
+      const a0 = (i/40)*Math.PI*2, a1 = ((i+1)/40)*Math.PI*2;
+      const f = (a)=>[.355*Math.cos(a), .355*Math.sin(a)*Math.cos(rot), .355*Math.sin(a)*Math.sin(rot)];
+      pts.push(...f(a0), ...f(a1));
+    }
+  }
+  seam.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+  ball.add(new THREE.LineSegments(seam, new THREE.LineBasicMaterial({ color: INK, transparent:true, opacity:.75 })));
+}
+
+// 인물 배치 — 서버(우리 쪽 엔드라인) + 건너편 리시브 준비 2명
+const server = silhouette(POSE_SERVE, 1.5, 10, 1.0);
+const rcvA = silhouette(POSE_READY, -2.0, -5.6, .98, true);
+const rcvB = silhouette(POSE_READY, 1.8, -4.6, .95);
+
+// ── 패스 타깃: 색 + 법선(+깊이) ──
+const size = new THREE.Vector2();
+function makeTargets() {
+  renderer.getDrawingBufferSize(size);
+  const opt = { type: THREE.UnsignedByteType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
+  const color = new THREE.WebGLRenderTarget(size.x, size.y, opt);
+  const normal = new THREE.WebGLRenderTarget(size.x, size.y, opt);
+  normal.depthTexture = new THREE.DepthTexture(size.x, size.y);
+  normal.depthTexture.type = THREE.UnsignedShortType;
+  return { color, normal };
+}
+let RT = makeTargets();
+const normalMat = new THREE.MeshNormalMaterial();
+
+// ── 합성: 엣지 검출 → 손떨림 → 스크린톤 → 종이결 ──
+const quadCam = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const quadScene = new THREE.Scene();
+const composite = new THREE.ShaderMaterial({
+  uniforms: {
+    tColor:{value:null}, tNormal:{value:null}, tDepth:{value:null},
+    res:{value:new THREE.Vector2()}, cNear:{value:.1}, cFar:{value:100},
+    edgeW:{value:1.3}, wobble:{value:1.2}, tone:{value:.85}, paper:{value:.5},
+    speed:{value:0.0}, speedAmt:{value:.45}, focus:{value:new THREE.Vector2(.5,.55)}, inkCol:{value:new THREE.Color(INK)}, paperCol:{value:new THREE.Color(PAPER)}
+  },
+  vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
+  fragmentShader: `
+    precision highp float;
+    uniform sampler2D tColor, tNormal, tDepth;
+    uniform vec2 res; uniform float cNear, cFar;
+    uniform float edgeW, wobble, tone, paper, speed, speedAmt;
+    uniform vec2 focus;
+    uniform vec3 inkCol, paperCol;
+    varying vec2 vUv;
+
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(41.3,289.1))) * 43758.5453); }
+    float noise(vec2 p){
+      vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y);
+    }
+    float lin(vec2 uv){
+      float z = texture2D(tDepth, uv).x;
+      return (2.*cNear) / (cFar + cNear - z*(cFar-cNear));
+    }
+    // 3x3 소벨 — 법선과 깊이 각각.
+    // 깊이는 '절대' 차이가 아니라 '상대' 차이로 본다. 절대값을 쓰면 시선에 스치는 면(바닥·원경)에서
+    // 기울기가 폭주해 화면 가운데가 검게 뭉갠다.
+    float edges(vec2 uv, vec2 tx){
+      float dx=0., dy=0., nx=0., ny=0.;
+      for(int j=-1;j<=1;j++){
+        for(int i=-1;i<=1;i++){
+          vec2 o = vec2(float(i),float(j))*tx;
+          float kx = float(i)*(2.-abs(float(j)));
+          float ky = float(j)*(2.-abs(float(i)));
+          float d = lin(uv+o);
+          vec3 n = texture2D(tNormal, uv+o).rgb;
+          dx += d*kx; dy += d*ky;
+          nx += (n.r+n.g+n.b)*kx; ny += (n.r+n.g+n.b)*ky;
+        }
+      }
+      float dc = max(lin(uv), 1e-4);
+      float de = smoothstep(.035, .16, sqrt(dx*dx+dy*dy) / dc);
+      float ne = smoothstep(.10, .55, sqrt(nx*nx+ny*ny) * .55);
+      return max(de, ne);
+    }
+
+    void main(){
+      vec2 tx = 1.0/res;
+      // 손떨림: 위치 기반(시간 무관) → 프레임마다 선이 '끓지' 않는다
+      vec2 w = vec2(noise(vUv*7.0), noise(vUv*7.0+31.4)) - .5;
+      vec2 uv = vUv + w * wobble * tx * 2.4;
+
+      vec3 col = texture2D(tColor, uv).rgb;
+      float e = edges(uv, tx * edgeW);
+      // 선 농담 — 군데군데 흐려져 연필 맛
+      e *= mix(.72, 1.0, noise(vUv*vec2(res.x/res.y,1.)*38.0));
+
+      vec3 outc = paperCol;
+
+      // 실루엣(어두운 색면)은 통짜 먹으로
+      float isInk = 1.0 - smoothstep(.18, .40, max(col.r, max(col.g, col.b)));
+      outc = mix(outc, inkCol, isInk);
+
+      // 스크린톤: 마커 색(노랑)인 면을 점 패턴으로
+      float isTone = step(.72, col.r) * step(.55, col.g) * (1.0 - step(.45, col.b));
+      vec2 rot = mat2(.866,-.5,.5,.866) * (vUv*res/ max(3.2, 7.0-tone*3.0));
+      float dots = length(fract(rot)-.5);
+      float toneMask = isTone * tone * (1.0 - smoothstep(.26,.34, dots));
+      outc = mix(outc, inkCol, toneMask*.8);
+
+      // 집중선 — 임팩트 순간에만, 타격 지점으로 수렴
+      if (speed > .001) {
+        vec2 d = (vUv - focus) * vec2(res.x/res.y, 1.0);
+        float ang = atan(d.y, d.x);
+        float rad = length(d);
+        float idx = floor(ang * 74.0 / 6.2831);                 // 촘촘한 선 다발
+        float k = fract(ang * 74.0 / 6.2831);
+        float wdt = .10 + hash(vec2(idx, 3.0)) * .16;            // 선마다 굵기가 다르게
+        float ln = 1.0 - smoothstep(wdt*.6, wdt, abs(k-.5));
+        float start = .16 + hash(vec2(idx, 9.0)) * .20;          // 시작 반경도 제각각
+        float band = smoothstep(start, start+.30, rad);
+        outc = mix(outc, inkCol, ln*band*speed*speedAmt);
+      }
+
+      outc = mix(outc, inkCol, e);
+
+      // 종이결
+      float grain = noise(vUv*res.xy*.55)*.5 + noise(vUv*res.xy*.18)*.5;
+      outc *= 1.0 - (grain-.5) * .12 * paper;
+      gl_FragColor = vec4(outc, 1.0);
+    }`
+});
+quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), composite));
+
+// ── 서브 국면: 스크롤로 공과 카메라 ──
+const HAND = new THREE.Vector3(1.05, 2.05, 9.7);
+const SEG = { A: HAND, C: new THREE.Vector3(.4, 6.8, 3), B: new THREE.Vector3(-1.2, 3.6, -3.2) };
+const CAMS = {
+  hero:  { p:new THREE.Vector3(12.5,7.2,17), t:new THREE.Vector3(0,.8,.5) },
+  serve: { p:new THREE.Vector3(3.4,2.8,14.2), t:new THREE.Vector3(-.2,2.8,0) },
+  after: { p:new THREE.Vector3(7.2,4.2,2.0), t:new THREE.Vector3(-1.6,2.0,-4.4) }
+};
+const ballPos = new THREE.Vector3().copy(HAND);
+const desP = CAMS.hero.p.clone(), desT = CAMS.hero.t.clone();
+const smP = desP.clone(), smT = desT.clone();
+const ease = t => t*t*(3-2*t);
+let impact = 0;
+
+function fit(){
+  const w=innerWidth, h=innerHeight;
+  camera.aspect = w/h;
+  camera.fov = camera.aspect < DESIGN_ASPECT
+    ? Math.min(78, THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(H_HALF)/camera.aspect))) : BASE_FOV;
+  camera.updateProjectionMatrix();
+  if (w >= 900) camera.setViewOffset(w,h,-w*.17,0,w,h); else camera.setViewOffset(w,h,0,h*.15,w,h);
+  renderer.setSize(w,h);
+  RT.color.dispose(); RT.normal.dispose(); RT = makeTargets();
+  renderer.getDrawingBufferSize(size);
+  composite.uniforms.res.value.copy(size);
+  composite.uniforms.cNear.value = camera.near;
+  composite.uniforms.cFar.value = camera.far;
+}
+
+function readScroll(){
+  const max = document.body.scrollHeight - innerHeight;
+  const p = max > 0 ? scrollY / max : 0;     // 0..1
+  // 0~.33 히어로 → .33~.72 서브 비행 → 이후 정착
+  let a, b, t;
+  if (p < .33) { a=CAMS.hero; b=CAMS.serve; t=p/.33; ballPos.copy(HAND); impact = 0; }
+  else {
+    const q = Math.min(1,(p-.33)/.39);
+    a=CAMS.serve; b=CAMS.after; t=q;
+    const u=1-q;
+    ballPos.set(
+      u*u*SEG.A.x + 2*u*q*SEG.C.x + q*q*SEG.B.x,
+      u*u*SEG.A.y + 2*u*q*SEG.C.y + q*q*SEG.B.y,
+      u*u*SEG.A.z + 2*u*q*SEG.C.z + q*q*SEG.B.z
+    );
+    impact = Math.max(0, 1 - Math.abs(q-.05)/.07);   // 타격 직후 아주 짧게만
+  }
+  const et = ease(Math.min(1,Math.max(0,t)));
+  desP.lerpVectors(a.p,b.p,et); desT.lerpVectors(a.t,b.t,et);
+}
+
+const kn = (id,u,f=v=>v)=>{ const el=document.getElementById(id);
+  const set=()=>composite.uniforms[u].value=f(parseFloat(el.value)); el.addEventListener('input',set); set(); };
+kn('kEdge','edgeW'); kn('kWob','wobble'); kn('kTone','tone'); kn('kPaper','paper'); kn('kSpeed','speedAmt');
+
+let last=-1;
+function frame(){
+  if (scrollY!==last){ last=scrollY; readScroll(); }
+  smP.lerp(desP,.10); smT.lerp(desT,.10);
+  camera.position.copy(smP); camera.lookAt(smT);
+  ball.position.copy(ballPos);
+  ball.rotation.z = -scrollY*.006; ball.rotation.x = scrollY*.003;
+  for (const m of [server,rcvA,rcvB]) if (m.userData.billboard) {
+    m.quaternion.copy(camera.quaternion);
+    if (m.scale.x < 0) m.rotateY(Math.PI);      // flip 유지
+  }
+  composite.uniforms.speed.value = impact;
+  if (impact > .001) {                       // 공의 화면 좌표로 집중선을 모은다
+    const v = ballPos.clone().project(camera);
+    composite.uniforms.focus.value.set(v.x*.5+.5, v.y*.5+.5);
+  }
+
+  scene.overrideMaterial = normalMat;
+  camera.layers.disable(1);                        // 실루엣 제외
+  renderer.setRenderTarget(RT.normal); renderer.render(scene,camera);
+  scene.overrideMaterial = null;
+  camera.layers.enable(1);                         // 색 패스에선 그린다
+  renderer.setRenderTarget(RT.color); renderer.render(scene,camera);
+
+  composite.uniforms.tColor.value = RT.color.texture;
+  composite.uniforms.tNormal.value = RT.normal.texture;
+  composite.uniforms.tDepth.value = RT.normal.depthTexture;
+  renderer.setRenderTarget(null); renderer.render(quadScene,quadCam);
+  requestAnimationFrame(frame);
+}
+fit(); readScroll(); smP.copy(desP); smT.copy(desT);
+addEventListener('resize', ()=>{ fit(); readScroll(); });
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
