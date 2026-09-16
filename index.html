@@ -144,10 +144,19 @@
       position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
       white-space: nowrap; font-size: .72rem; font-weight: 700; color: var(--brown);
       opacity: 0; pointer-events: none; transition: opacity .2s;
+      text-shadow: 0 0 6px var(--cream), 0 0 3px var(--cream);   /* 3D 위에 얹혀도 읽히게 */
     }
     .rail a:hover span, .rail a[aria-current="true"] span { opacity: 1; }
     .rail.hidden { opacity: 0; pointer-events: none; }
     .rail { transition: opacity .35s ease; }
+    /* 넓은 화면: 카드를 왼쪽에 몰아 오른쪽을 장면에 내준다 (카메라도 같은 쪽으로 밀어둔다) */
+    @media (min-width: 900px) {
+      section { align-items: flex-start; padding-left: 5vw; }
+      .inner { margin: 0; max-width: 470px; }
+      .hero-sec { align-items: center; }
+      .hero-sec .inner { margin: 0 auto; max-width: 560px; }
+    }
+
     @media (max-width: 640px) {
       .rail a span { display: none; }
       /* 좁은 화면에선 카드가 거의 전폭이라 레일과 겹친다 — 오른쪽에 전용 여백을 준다 */
@@ -544,12 +553,20 @@ function boot(THREE) {
   const H_HALF = Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV) / 2) * DESIGN_ASPECT);
   const camera = new THREE.PerspectiveCamera(BASE_FOV, innerWidth / innerHeight, 0.1, 100);
   function fitCamera() {
-    camera.aspect = innerWidth / innerHeight;
+    const w = innerWidth, h = innerHeight;
+    camera.aspect = w / h;
     camera.fov = camera.aspect < DESIGN_ASPECT
       ? Math.min(78, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(H_HALF) / camera.aspect)))
       : BASE_FOV;
     camera.updateProjectionMatrix();
+    // 텍스트 카드가 차지한 쪽을 비운다 — 프러스텀을 밀어 장면을 반대쪽으로 보낸다.
+    // 넓은 화면: 카드가 왼쪽 → 장면을 오른쪽으로. 좁은 화면: 카드가 아래 → 장면을 위로.
+    if (w >= 900) camera.setViewOffset(w, h, -w * 0.17, 0, w, h);
+    else camera.setViewOffset(w, h, 0, h * 0.15, w, h);
+    // 세로 화면은 가로 여유가 없어 같은 거리에서도 피사체가 화면을 꽉 채운다 → 카메라를 뒤로 물린다
+    DOLLY = camera.aspect < 1 ? 1.42 : (camera.aspect < DESIGN_ASPECT ? 1.15 : 1);
   }
+  let DOLLY = 1;
   fitCamera();
 
   // ── 조명: 스튜디오 3점 구성 (하늘/바닥 반사 + 키 + 필) ──
@@ -745,39 +762,86 @@ function boot(THREE) {
     return g;
   }
 
-  // 서버 (옐로팀, A코트 뒤) — 토스 자세
-  const server = makeBean(COL.yellow);
-  server.position.set(1.5, 0, 10);
-  server.rotation.y = Math.PI;                       // 네트(-z) 바라봄
-  server.userData.armL.rotation.z = -2.6;            // 왼팔 위로 (토스)
-  server.userData.armR.rotation.x = 0.9;             // 오른팔 뒤로
-  scene.add(server);
+  // ── 선수 4인 ──
+  // 기본은 '준비 자세'. 극적인 포즈는 공이 닿는 순간 전후에만 잡는다.
+  // 정지된 스파이크 포즈는 고장으로 읽히지만, 서 있는 준비 자세는 의도로 읽힌다.
+  function place(bean, x, z, faceY) {
+    bean.position.set(x, 0, z);
+    bean.rotation.y = faceY;
+    bean.userData.baseY = 0;
+    bean.userData.phase = Math.random() * Math.PI * 2;   // 숨쉬기 위상
+    scene.add(bean);
+    return bean;
+  }
 
-  // 리시버 (브라운팀) — 디그 자세
-  const receiver = makeBean(COL.brown);
-  receiver.position.set(-2, -0.1, -5.9);
-  receiver.rotation.x = 0.3;
-  receiver.userData.armL.rotation.x = -1.15;
-  receiver.userData.armR.rotation.x = -1.15;
-  receiver.userData.armL.rotation.z = -0.25;
-  receiver.userData.armR.rotation.z = 0.25;
-  scene.add(receiver);
+  const server   = place(makeBean(COL.yellow), 1.5, 10, Math.PI);   // 네트(-z) 바라봄
+  const receiver = place(makeBean(COL.brown), -2, -5.9, 0);
+  const setter   = place(makeBean(COL.brown), 0.5, -1.05, 0);
+  const spiker   = place(makeBean(COL.brown), -2.1, -0.75, 0);
 
-  // 세터 (브라운팀) — 두 손 위
-  const setter = makeBean(COL.brown);
-  setter.position.set(0.5, 0, -1.05);
-  setter.userData.armL.rotation.z = -2.9;
-  setter.userData.armR.rotation.z = 2.9;
-  scene.add(setter);
+  // ── 키프레임 보간: s(-1 준비 → 0 임팩트 → +1 준비 복귀) ──
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  function track(keys, s) {
+    if (s <= keys[0][0]) return keys[0][1];
+    for (let i = 0; i < keys.length - 1; i++) {
+      const [sa, va] = keys[i], [sb, vb] = keys[i + 1];
+      if (s <= sb) return va + (vb - va) * ease(clamp01((s - sa) / (sb - sa)));
+    }
+    return keys[keys.length - 1][1];
+  }
 
-  // 스파이커 (브라운팀) — 공중 스윙
-  const spiker = makeBean(COL.brown);
-  spiker.position.set(-2.1, 1.15, -0.75);
-  spiker.rotation.x = -0.18;
-  spiker.userData.armR.rotation.z = 2.5;   // 스윙 팔 위
-  spiker.userData.armL.rotation.x = -0.7;
-  spiker.userData.armL.rotation.z = -0.5;
-  scene.add(spiker);
+  // 공이 각 선수에게 닿는 지점(전역 진행도)과 동작 창
+  const PHASE_IDX = { hero: 0, serve: 1, serve2: 2, receive: 3, toss: 4, spike: 5, land: 6 };
+  const PHASE_N = 7;
+  const ACTS = [
+    { who: server,   at: 1 / PHASE_N,       lead: .06, trail: .05, kind: 'serve' },
+    { who: receiver, at: 3 / PHASE_N,       lead: .05, trail: .06, kind: 'dig'   },
+    { who: setter,   at: 4 / PHASE_N,       lead: .05, trail: .05, kind: 'set'   },
+    { who: spiker,   at: 5 / PHASE_N,       lead: .06, trail: .07, kind: 'spike' }
+  ];
+
+  // 동작별 트랙 — 준비 → 장전 → 임팩트 → 복귀
+  const MOVES = {
+    serve: (b, s) => {
+      b.userData.armL.rotation.z = track([[-1,-.25],[-.4,-2.6],[.1,-1.4],[1,-.2]], s);  // 토스 올렸다 내림
+      b.userData.armR.rotation.x = track([[-1,.1],[-.25,1.15],[.12,-1.05],[1,.08]], s); // 뒤로 당겼다 스윙
+      b.userData.armR.rotation.z = 0;
+      b.userData.armL.rotation.x = 0;
+      b.rotation.x = track([[-1,0],[-.2,-.12],[.15,.14],[1,0]], s);
+    },
+    dig: (b, s) => {
+      const a = track([[-1,-.28],[-.2,-1.18],[.15,-1.02],[1,-.24]], s);
+      b.userData.armL.rotation.x = a; b.userData.armR.rotation.x = a;
+      b.userData.armL.rotation.z = -.25; b.userData.armR.rotation.z = .25;
+      b.rotation.x = track([[-1,.04],[-.1,.32],[.25,.1],[1,.04]], s);
+      b.userData.baseY = track([[-1,0],[-.08,-.24],[.22,.03],[1,0]], s);                 // 낮춰 받고 일어남
+    },
+    set: (b, s) => {
+      const z = track([[-1,2.15],[-.15,2.72],[.12,3.02],[1,2.15]], s);                   // 두 손 밀어 올림
+      b.userData.armL.rotation.z = -z; b.userData.armR.rotation.z = z;
+      b.userData.armL.rotation.x = 0; b.userData.armR.rotation.x = 0;
+      b.userData.baseY = track([[-1,0],[-.1,-.12],[.15,.05],[1,0]], s);
+    },
+    spike: (b, s) => {
+      b.userData.baseY = track([[-1,0],[-.35,.06],[-.05,1.28],[.2,1.18],[.62,0],[1,0]], s); // 도움닫기 → 점프 → 착지
+      b.userData.armR.rotation.z = track([[-1,.35],[-.18,2.62],[.14,.45],[1,.3]], s);       // 팔 올렸다 내려침
+      b.userData.armL.rotation.x = track([[-1,-.18],[-.18,-.95],[.2,-.2],[1,-.16]], s);
+      b.userData.armR.rotation.x = 0;
+      b.userData.armL.rotation.z = 0;
+      b.rotation.x = track([[-1,0],[-.1,-.2],[.3,.08],[1,0]], s);
+    }
+  };
+
+  function applyPoses(g, time) {
+    for (const act of ACTS) {
+      const d = g - act.at;
+      const s = d < 0 ? Math.max(-1, d / act.lead) : Math.min(1, d / act.trail);
+      MOVES[act.kind](act.who, s);
+      // 숨쉬기 — 정지 구간에서도 장면이 죽지 않게
+      const idle = Math.abs(s) > .9 ? Math.sin(time * 1.5 + act.who.userData.phase) * .012 : 0;
+      act.who.position.y = act.who.userData.baseY + idle;
+    }
+  }
 
   // ── 소품: 심판대 + 심판, 벤치 + 물병 ──
   const refStand = new THREE.Group();
@@ -875,7 +939,7 @@ function boot(THREE) {
     serve2: { p: new THREE.Vector3(8.6, 5.0, -1.8),  t: new THREE.Vector3(-1.8, 1.6, -5.2) },
     receive:{ p: new THREE.Vector3(-9.0, 3.6, -10.5), t: new THREE.Vector3(0.4, 1.8, -1.2) },
     toss:   { p: new THREE.Vector3(-7.0, 2.6, -4.6), t: new THREE.Vector3(-0.8, 2.8, -0.8) },
-    spike:  { p: new THREE.Vector3(-4.2, 1.6, 6.8),  t: new THREE.Vector3(-1.7, 2.9, -0.6) },
+    spike:  { p: new THREE.Vector3(-6.6, 2.7, 9.2),  t: new THREE.Vector3(-1.8, 2.7, -0.4) },
     land:   { p: new THREE.Vector3(-0.2, 3.4, 7.6),  t: new THREE.Vector3(-2.6, 0.5, 9.8) },
     end:    { p: new THREE.Vector3(-0.4, 3.6, 17),   t: new THREE.Vector3(-3.2, 0.9, 11) }
   };
@@ -891,6 +955,7 @@ function boot(THREE) {
 
   const ease = (t) => t * t * (3 - 2 * t);
   let railPhase = '';
+  let gProgress = 0;          // 랠리 전역 진행도 0..1 — 선수 동작 타이밍의 기준
 
   function readScroll() {
     const vh = innerHeight;
@@ -905,6 +970,7 @@ function boot(THREE) {
       }
     }
     t = Math.min(1, Math.max(0, t));
+    gProgress = ((PHASE_IDX[current] ?? 6) + t) / PHASE_N;
 
     // 공 위치 (착지 구간은 스크롤 60% 지점에서 바운드 완결 — 끝까지 못 가도 그릇에 담기게)
     if (current === 'land') bouncePos(Math.min(1, t / 0.6), ballPos);
@@ -916,6 +982,7 @@ function boot(THREE) {
     const et = ease(t);
     desiredP.lerpVectors(a.p, b.p, et);
     desiredT.lerpVectors(a.t, b.t, et);
+    if (DOLLY !== 1) desiredP.sub(desiredT).multiplyScalar(DOLLY).add(desiredT);   // 타깃에서 뒤로
 
     if (current !== railPhase) { railPhase = current; markRail(current); }
   }
@@ -930,6 +997,7 @@ function boot(THREE) {
     ball.position.copy(ballPos);
     ball.rotation.z = -scrollY * 0.004;
     ball.rotation.x = scrollY * 0.002;
+    applyPoses(gProgress, performance.now() / 1000);
     renderer.render(scene, camera);
     if (first) { first = false; stage.classList.add('ready'); }   // 첫 프레임 후 페이드인
     requestAnimationFrame(frame);
