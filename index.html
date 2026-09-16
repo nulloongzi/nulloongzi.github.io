@@ -20,204 +20,181 @@
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-  <!-- Pretendard dynamic-subset: 이 페이지에 실제로 쓰인 글자만 내려받는다 -->
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <style>
     :root {
-      --yellow: #fac710;
-      --brown: #8d6e63;
-      --dark: #4e342e;
-      --cream: #fff8e1;
-      --white: #fff;
-      --text: #3e2f2a;
+      --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --white:#fff;
+      --text:#3e2f2a; --ink:#2f2320;
+      --measure: 30em;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
     body {
-      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
-                   "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      line-height: 1.7;
-      overflow-x: hidden;
+      font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,Roboto,
+                  "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+      background:var(--cream); color:var(--text);
+      font-size:17px; line-height:1.85; letter-spacing:-.003em;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      word-break:keep-all;          /* 한국어 어절 단위 줄바꿈 */
     }
+    html[data-lang="ko"] [data-l="en"] { display:none !important; }
+    html[data-lang="en"] [data-l="ko"] { display:none !important; }
+    html[data-lang="en"] body { word-break:normal; }
 
-    /* ── 언어 전환: 같은 뜻의 두 블록을 나란히 두고 하나만 보여준다.
-         긴 본문에 <strong> 이 섞여 있어 속성값(data-ko="…")보다 이 방식이 안전하다. ── */
-    html[data-lang="ko"] [data-l="en"] { display: none !important; }
-    html[data-lang="en"] [data-l="ko"] { display: none !important; }
+    /* ── 선 그래픽: 공과 코트만. 글을 방해하지 않게 뒤에 낮게 깔린다 ── */
+    /* 그래픽은 본문을 가로지르지 않는다 — 넓은 화면은 오른쪽, 좁은 화면은 아래 띠 */
+    #court { position:fixed; z-index:0; pointer-events:none;
+             left:0; right:0; bottom:0; height:24vh; opacity:.8;
+             /* 위쪽을 흐리게 지워 본문 아래에서 자연스럽게 떠오르게 — 안 그러면 제목과 부딪혀 보인다 */
+             -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 42%);
+             mask-image:linear-gradient(180deg, transparent 0%, #000 42%); }
+    @media (min-width:900px){
+      #court { left:52%; right:2.5vw; top:50%; bottom:auto; height:62vh; opacity:1;
+               transform:translateY(-50%);
+               -webkit-mask-image:none; mask-image:none; }
+    }
+    #court svg { width:100%; height:100%; display:block; }
+    .court-line { fill:none; stroke:var(--brown); stroke-width:1.3; opacity:.38; stroke-linecap:round; }
+    .court-net  { fill:none; stroke:var(--brown); stroke-width:1.3; opacity:.5; }
+    .court-tick { fill:none; stroke:var(--brown); stroke-width:1.3; opacity:.38; stroke-linecap:round; }
+    .bowl       { fill:none; stroke:var(--brown); stroke-width:1.6; opacity:.5; stroke-linecap:round; }
+    #arc        { fill:none; stroke:var(--ink); stroke-width:2.1; stroke-linecap:round;
+                  stroke-dasharray:1; stroke-dashoffset:1; opacity:.85; }
+    #ballDot    { fill:var(--cream); stroke:var(--ink); stroke-width:1.8; }
+    #ballSeam   { fill:none; stroke:var(--ink); stroke-width:1; opacity:.55; }
 
-    /* ── 3D 무대 ── */
-    #stage { position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity .8s ease; }
-    #stage.ready { opacity: 1; }
-    #stage canvas { display: block; }
-    /* 3D 를 못 쓰는 환경(WebGL 실패·reduced-motion·저사양)에서도 허전하지 않게 */
-    body.no3d { background: linear-gradient(180deg, var(--cream) 0%, var(--cream) 62%, #f2e2bd 100%); }
-
-    /* ── 상단 바 ── */
+    /* ── 상단 ── */
     .topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px max(16px, 4vw);
-      background: linear-gradient(180deg, rgba(255,248,225,.92), rgba(255,248,225,0));
+      position:fixed; top:0; left:0; right:0; z-index:20;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px max(18px,4vw);
+      background:linear-gradient(180deg, var(--cream) 72%, rgba(255,248,225,0));
+      padding-bottom:26px;
     }
-    .wordmark { font-weight: 800; font-size: 1rem; color: var(--dark); text-decoration: none; }
-    .wordmark span { color: var(--brown); font-weight: 500; }
+    .wordmark { font-weight:800; font-size:1rem; color:var(--dark); text-decoration:none; letter-spacing:-.01em; }
+    .wordmark span { color:var(--brown); font-weight:500; }
     #langToggle {
-      border: 1.5px solid var(--brown); background: rgba(255,248,225,.7); color: var(--brown);
-      border-radius: 999px; padding: 4px 14px; font: inherit; font-size: .82rem; font-weight: 700;
-      cursor: pointer; transition: background .15s, color .15s;
+      border:1.5px solid var(--brown); background:transparent; color:var(--brown);
+      border-radius:999px; padding:4px 14px; font:inherit; font-size:.8rem; font-weight:700;
+      cursor:pointer; transition:background .15s,color .15s;
     }
-    #langToggle:hover { background: var(--brown); color: var(--cream); }
+    #langToggle:hover { background:var(--brown); color:var(--cream); }
 
-    /* ── 인터뷰 섹션 ── */
-    section {
-      min-height: 100vh; position: relative; z-index: 2;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 12vh 20px;
-    }
-    .inner {
-      max-width: 560px; margin: 0 auto; width: 100%;
-      background: rgba(255, 248, 225, 0.86);
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
-      border-radius: 22px;
-      border: 1px solid rgba(141, 110, 99, 0.14);
-      padding: 30px 30px 26px;
-      box-shadow: 0 8px 32px rgba(93, 64, 55, 0.10);
-      opacity: 0; transform: translateY(24px);
-      transition: opacity .7s ease, transform .7s ease;
-    }
-    .inner.on { opacity: 1; transform: none; }
+    /* ── 국면 진행 ── */
+    .rail { position:fixed; right:max(14px,2.2vw); top:50%; transform:translateY(-50%);
+            z-index:15; display:flex; flex-direction:column; gap:15px; transition:opacity .35s; }
+    .rail.hidden { opacity:0; pointer-events:none; }
+    .rail a { width:9px; height:9px; border-radius:50%; display:block; position:relative;
+              background:rgba(141,110,99,.26); border:1.5px solid transparent;
+              transition:background .25s,transform .25s,border-color .25s; }
+    .rail a[aria-current="true"] { background:var(--yellow); border-color:var(--brown); transform:scale(1.4); }
+    .rail a span { position:absolute; right:18px; top:50%; transform:translateY(-50%);
+                   white-space:nowrap; font-size:.7rem; font-weight:700; color:var(--brown);
+                   opacity:0; pointer-events:none; transition:opacity .2s;
+                   text-shadow:0 0 6px var(--cream),0 0 3px var(--cream); }
+    .rail a:hover span, .rail a[aria-current="true"] span { opacity:1; }
+    @media (max-width:700px){ .rail a span{ display:none; } .rail{ right:10px; gap:12px; } }
 
-    .phase {
-      font-size: .82rem; font-weight: 800; letter-spacing: .18em;
-      color: var(--brown); text-transform: uppercase;
-      display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
-    }
-    .phase::before { content: ""; width: 26px; height: 3px; background: var(--yellow); border-radius: 2px; }
-    .phase-ko { font-size: clamp(1.7rem, 5.4vw, 2.5rem); font-weight: 800; color: var(--dark); line-height: 1.25; margin-bottom: 20px; }
+    /* ── 본문: 활자가 주인공 ── */
+    main { position:relative; z-index:2; }
+    section { min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+              padding:16vh max(22px,6vw); }
+    @media (min-width:900px){ section { padding:22vh max(22px,6vw); } }
+    .col { max-width:var(--measure); width:100%; }
 
-    .q { font-weight: 700; color: var(--brown); margin-bottom: 12px; font-size: 1.02rem; }
-    .q::before { content: "Q. "; color: var(--yellow); -webkit-text-stroke: .5px var(--brown); }
-    .a { font-size: 1.06rem; }
-    .a p { margin-bottom: 13px; }
-    .a p:last-child { margin-bottom: 0; }
-    .a strong { color: var(--dark); }
+    .hero { text-align:left; }
+    .hero h1 { font-size:clamp(2.9rem,9.5vw,5.4rem); font-weight:800; color:var(--dark);
+               line-height:1.04; letter-spacing:-.035em; margin-bottom:18px; }
+    .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
+    .hero .scrollhint { margin-top:44px; font-size:.84rem; font-weight:700; color:var(--brown);
+                        letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
+    .hero .scrollhint::after { content:"↓"; animation:bob 1.7s ease-in-out infinite; }
+    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
 
-    .hero-sec { text-align: center; }
-    /* 카드 대신 부드러운 크림 스크림 — 3D 위에 얹혀도 제목이 읽히게 (모바일에서 네트·선수와 겹친다) */
-    .hero-sec .inner {
-      background: radial-gradient(ellipse 120% 100% at 50% 50%,
-                  rgba(255,248,225,.94) 0%, rgba(255,248,225,.82) 48%, rgba(255,248,225,0) 78%);
-      border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
-      padding: 40px 24px;
-    }
-    .hero-sec h1 {
-      font-size: clamp(2.4rem, 8vw, 3.6rem); font-weight: 800; color: var(--dark); margin-bottom: 8px;
-      text-shadow: 0 2px 18px rgba(255, 248, 225, .9);
-    }
-    .hero-sec .sub { color: var(--brown); font-size: 1.05rem; text-shadow: 0 1px 12px rgba(255, 248, 225, .9); }
-    .hint {
-      position: absolute; left: 0; right: 0; bottom: 8vh;
-      color: var(--brown); font-size: .9rem; animation: bob 1.6s ease-in-out infinite;
-    }
-    @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+    .phase { font-size:.74rem; font-weight:800; letter-spacing:.2em; color:var(--brown);
+             text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .phase::before { content:""; width:28px; height:3px; background:var(--yellow); border-radius:2px; }
+    h2 { font-size:clamp(1.9rem,5.2vw,2.9rem); font-weight:800; color:var(--dark);
+         line-height:1.18; letter-spacing:-.03em; margin-bottom:38px; }
 
-    .spike-line { font-size: clamp(1.4rem, 4.4vw, 2rem); font-weight: 800; color: var(--dark); margin-top: 14px; }
-    .spike-line em { font-style: normal; background: linear-gradient(transparent 62%, var(--yellow) 62%); }
+    .q { font-weight:700; color:var(--brown); font-size:1.02rem; line-height:1.6;
+         margin-bottom:14px; text-indent:-1.1em; padding-left:1.1em; }
+    .q::before { content:"Q."; color:var(--dark); margin-right:.35em;
+                 background:linear-gradient(transparent 58%, var(--yellow) 58%); }
+    .a p { margin-bottom:16px; }
+    .a p:last-child { margin-bottom:0; }
+    .a + .q, blockquote + .q { margin-top:52px; }
 
-    /* ── 진행 표시 (국면 5개) ── */
-    .rail {
-      position: fixed; right: max(12px, 2.4vw); top: 50%; transform: translateY(-50%);
-      z-index: 15; display: flex; flex-direction: column; gap: 14px;
-    }
-    .rail a {
-      width: 10px; height: 10px; border-radius: 50%; display: block;
-      background: rgba(141, 110, 99, .28); border: 1.5px solid transparent;
-      transition: background .25s, transform .25s, border-color .25s;
-      position: relative;
-    }
-    .rail a[aria-current="true"] { background: var(--yellow); border-color: var(--brown); transform: scale(1.35); }
-    .rail a span {
-      position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
-      white-space: nowrap; font-size: .72rem; font-weight: 700; color: var(--brown);
-      opacity: 0; pointer-events: none; transition: opacity .2s;
-      text-shadow: 0 0 6px var(--cream), 0 0 3px var(--cream);   /* 3D 위에 얹혀도 읽히게 */
-    }
-    .rail a:hover span, .rail a[aria-current="true"] span { opacity: 1; }
-    .rail.hidden { opacity: 0; pointer-events: none; }
-    .rail { transition: opacity .35s ease; }
-    /* 넓은 화면: 카드를 왼쪽에 몰아 오른쪽을 장면에 내준다 (카메라도 같은 쪽으로 밀어둔다) */
-    @media (min-width: 900px) {
-      section { align-items: flex-start; padding-left: 5vw; }
-      .inner { margin: 0; max-width: 470px; }
-      .hero-sec { align-items: center; }
-      .hero-sec .inner { margin: 0 auto; max-width: 560px; }
-    }
+    /* 인용: 이 글에서 제일 좋은 문장을 크게 */
+    blockquote { margin:34px 0 0; font-size:clamp(1.42rem,3.7vw,2.05rem); font-weight:800;
+                 color:var(--dark); line-height:1.38; letter-spacing:-.028em; }
+    blockquote em { font-style:normal; background:linear-gradient(transparent 62%, var(--yellow) 62%); }
 
-    @media (max-width: 640px) {
-      .rail a span { display: none; }
-      /* 좁은 화면에선 카드가 거의 전폭이라 레일과 겹친다 — 오른쪽에 전용 여백을 준다 */
-      .rail { right: 8px; gap: 12px; }
-      .rail a { width: 8px; height: 8px; }
-      section { padding-left: 16px; padding-right: 32px; }
-    }
-
-    /* ── 후반부: 프로젝트 · 연락 (불투명 배경으로 3D 위를 덮는다) ── */
-    .outro { position: relative; z-index: 3; background: var(--cream); }
-    .outro::before {
-      content: ""; display: block; height: 18vh;
-      background: linear-gradient(180deg, rgba(255,248,225,0), var(--cream));
-      margin-top: -18vh; pointer-events: none;
-    }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
-    .outro h2 {
-      font-size: 1.3rem; color: var(--dark); margin-bottom: 20px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .outro h2::after { content: ""; flex: 1; height: 2px; background: rgba(250, 199, 16, 0.5); border-radius: 2px; }
-    .outro-sec { padding: 40px 0; }
-
-    .card {
-      background: var(--white); border-radius: 16px; padding: 24px;
-      margin-bottom: 16px; border: 1px solid rgba(141, 110, 99, 0.12);
-      box-shadow: 0 2px 8px rgba(78, 52, 46, 0.05);
-    }
-    .card h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .badge {
-      font-size: .7rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
-      background: var(--yellow); color: var(--dark); white-space: nowrap;
-    }
-    .badge.soon { background: rgba(141, 110, 99, 0.15); color: var(--brown); }
-    .card .desc { margin: 10px 0 16px; }
-    .links { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 10px 22px; border-radius: 999px; text-decoration: none;
-      font-weight: 700; font-size: .95rem; transition: transform .12s, box-shadow .12s;
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(78, 52, 46, 0.15); }
-    .btn.primary { background: var(--yellow); color: var(--dark); }
-    .btn.secondary { background: var(--dark); color: var(--white); }
-    .btn.ghost { border: 1.5px solid var(--brown); color: var(--brown); }
-
-    .land-links { justify-content: center; margin-top: 24px; }
-    .floor-section { text-align: center; }
-
-    footer { text-align: center; padding: 26px 0 40px; color: var(--brown); font-size: .85rem; position: relative; z-index: 3; background: var(--cream); }
+    /* ── 후반부 ── */
+    .outro { position:relative; z-index:3; background:var(--cream); padding-top:6vh; }
+    .wrap { max-width:720px; margin:0 auto; padding:0 max(22px,6vw); }
+    .outro section { min-height:0; padding:46px 0; display:block; }
+    .outro h3.sec { font-size:.74rem; font-weight:800; letter-spacing:.2em; color:var(--brown);
+                    text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+    .outro h3.sec::after { content:""; flex:1; height:1px; background:rgba(141,110,99,.3); }
+    .card { padding:26px 0; border-top:1px solid rgba(141,110,99,.18); }
+    .card:first-of-type { border-top:none; }
+    .card h4 { font-size:1.22rem; font-weight:800; color:var(--dark); margin-bottom:6px;
+               display:flex; align-items:center; gap:9px; flex-wrap:wrap; letter-spacing:-.02em; }
+    .badge { font-size:.68rem; font-weight:700; padding:2px 10px; border-radius:999px;
+             background:var(--yellow); color:var(--dark); white-space:nowrap; letter-spacing:0; }
+    .badge.soon { background:rgba(141,110,99,.15); color:var(--brown); }
+    .card .desc { margin:8px 0 18px; font-size:.98rem; }
+    .links { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { display:inline-flex; align-items:center; padding:9px 20px; border-radius:999px;
+           text-decoration:none; font-weight:700; font-size:.9rem; transition:transform .12s; }
+    .btn:hover { transform:translateY(-1px); }
+    .btn.primary { background:var(--yellow); color:var(--dark); }
+    .btn.secondary { background:var(--dark); color:var(--white); }
+    .btn.ghost { border:1.5px solid var(--brown); color:var(--brown); }
+    footer { position:relative; z-index:3; background:var(--cream);
+             text-align:center; padding:40px 20px 52px; color:var(--brown); font-size:.84rem; }
 
     @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .hint { animation: none; }
-      .inner { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior:auto; }
+      .hero .scrollhint::after { animation:none; }
+      #arc { stroke-dashoffset:0 !important; }
     }
   </style>
 </head>
 <body>
 
-<div id="stage" aria-hidden="true"></div>
+<div id="court" aria-hidden="true">
+  <!-- 측면에서 본 코트. 표현하는 건 공과 코트뿐이다. -->
+  <svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">
+    <path class="court-line" d="M 70 470 H 930"/>
+    <path class="court-tick" d="M 120 470 v 14 M 880 470 v 14 M 380 470 v 9 M 620 470 v 9"/>
+    <g class="court-net">
+      <path d="M 500 470 V 292"/>
+      <path d="M 470 292 H 530" opacity=".8"/>
+      <path d="M 486 292 V 356 M 500 292 V 356 M 514 292 V 356" opacity=".35"/>
+      <path d="M 470 356 H 530" opacity=".35"/>
+    </g>
+    <!-- 밥그릇 — 랠리의 종착지 -->
+    <path class="bowl" d="M 872 452 q 26 30 52 0"/>
+    <path class="bowl" d="M 866 452 h 64" opacity=".38"/>
+
+    <path id="arc" d="M 836 236
+      C 720 90, 380 96, 268 352
+      C 300 150, 380 120, 438 250
+      C 428 118, 442 108, 472 142
+      C 560 212, 662 352, 742 452
+      Q 790 378, 826 452
+      Q 852 412, 872 452
+      Q 886 438, 898 450"/>
+    <g id="ball">
+      <circle id="ballDot" cx="0" cy="0" r="7"/>
+      <path id="ballSeam" d="M -7 0 A 10 10 0 0 1 7 0 M -7 0 A 10 10 0 0 0 7 0"/>
+    </g>
+  </svg>
+</div>
 
 <div class="topbar">
   <a class="wordmark" href="/">누룽지 <span>nulloongzi</span></a>
@@ -227,123 +204,128 @@
 <nav class="rail" id="rail" aria-label="랠리 국면"></nav>
 
 <main>
-  <section class="hero-sec" data-phase="hero">
-    <div class="inner">
-      <h1 data-l="ko">누룽지의 랠리</h1>
-      <h1 data-l="en">Nulloongzi's Rally</h1>
-      <div class="sub" data-l="ko">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</div>
-      <div class="sub" data-l="en">From the serve to the floor — Nulloongzi, in his own words</div>
+  <section class="hero" data-phase="hero">
+    <div class="col">
+      <h1 data-l="ko">누룽지의<br>랠리</h1>
+      <h1 data-l="en">Nulloongzi's<br>Rally</h1>
+      <p class="sub" data-l="ko">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</p>
+      <p class="sub" data-l="en">From the serve to the floor — Nulloongzi, in his own words</p>
+      <div class="scrollhint" data-l="ko">스크롤하면 랠리가 시작됩니다</div>
+      <div class="scrollhint" data-l="en">Scroll to start the rally</div>
     </div>
-    <div class="hint" data-l="ko">스크롤하면 랠리가 시작됩니다 ↓</div>
-    <div class="hint" data-l="en">Scroll to start the rally ↓</div>
   </section>
 
   <section data-phase="serve" data-rail="Serve">
-    <div class="inner">
+    <div class="col">
       <div class="phase">Serve</div>
-      <h2 class="phase-ko" data-l="ko">서브 — 시작</h2>
-      <h2 class="phase-ko" data-l="en">Serve — the start</h2>
+      <h2 data-l="ko">서브 — 시작</h2>
+      <h2 data-l="en">Serve — the start</h2>
       <div class="q" data-l="ko">배구, 어떻게 시작했어요?</div>
       <div class="q" data-l="en">How did you get into volleyball?</div>
       <div class="a" data-l="ko">
         <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
-        <p>만화처럼은 아니어도, <strong>친구들이랑 배구를 할 수 있다는 것 자체</strong>가 좋았어요.</p>
       </div>
       <div class="a" data-l="en">
         <p>A PE assignment in my last year of high school. That's when I first watched Haikyuu, and I thought — I want to do that. We had no court, so we strung a net across an outdoor basketball court and played our own rough version.</p>
-        <p>It was nothing like the anime. But <strong>just getting to play volleyball with my friends</strong> was enough.</p>
       </div>
+      <blockquote data-l="ko">만화처럼은 아니어도, <em>친구들이랑 배구를 할 수 있다는 것 자체</em>가 좋았어요.</blockquote>
+      <blockquote data-l="en">It was nothing like the anime. But <em>just getting to play with my friends</em> was enough.</blockquote>
     </div>
   </section>
 
   <section data-phase="serve2">
-    <div class="inner">
+    <div class="col">
       <div class="q" data-l="ko">왜 '누룽지'예요?</div>
       <div class="q" data-l="en">Why "Nulloongzi"?</div>
       <div class="a" data-l="ko">
         <p>한때 null(눌)이라는 이름으로 음악을 했었어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
-        <p>그 계정에 배구하는 걸 음악에 맞춰 일기처럼 올리다 보니, 어느새 코트에서 <strong>'누룽지'</strong>로 불리고 있더라고요.</p>
+        <p>그 계정에 배구하는 걸 음악에 맞춰 일기처럼 올리다 보니, 어느새 코트에서 '누룽지'로 불리고 있더라고요.</p>
       </div>
       <div class="a" data-l="en">
         <p>I used to make music under the name <em>null</em> — pronounced "nool" in Korean. My Instagram handle was null too, until a friend on a trip kept fumbling it: "Null? Nool? Nool-oongzi?" The handle became null_oongzi.</p>
-        <p>I posted volleyball clips set to music on that account, like a diary. Somewhere along the way people on the court started calling me <strong>Nulloongzi</strong> — scorched rice, the warm crust at the bottom of the pot.</p>
+        <p>I posted volleyball clips set to music on that account, like a diary. Somewhere along the way people on the court started calling me Nulloongzi — scorched rice, the warm crust at the bottom of the pot.</p>
       </div>
     </div>
   </section>
 
   <section data-phase="receive" data-rail="Receive">
-    <div class="inner">
+    <div class="col">
       <div class="phase">Receive</div>
-      <h2 class="phase-ko" data-l="ko">리시브 — 받은 것</h2>
-      <h2 class="phase-ko" data-l="en">Receive — what I was given</h2>
+      <h2 data-l="ko">리시브 — 받은 것</h2>
+      <h2 data-l="en">Receive — what I was given</h2>
       <div class="q" data-l="ko">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
       <div class="q" data-l="en">What's the most memorable thing this scene has given you?</div>
       <div class="a" data-l="ko">
         <p>새로운 사람 만나는 게 즐겁지 않던 시절이 있었어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
-        <p>제가 받은 환대는 플레이가 아니라 <strong>밥상에서</strong> 왔어요.</p>
       </div>
       <div class="a" data-l="en">
         <p>There was a time when meeting new people wasn't fun for me. I ended up at a club dinner after practice once, and eating together afterwards turned out to be the best part. I did that every week for three years. Play, then eat.</p>
-        <p>The welcome I got didn't come from the plays. It came from <strong>the dinner table</strong>.</p>
       </div>
+      <blockquote data-l="ko">제가 받은 환대는 플레이가 아니라 <em>밥상에서</em> 왔어요.</blockquote>
+      <blockquote data-l="en">The welcome I got didn't come from the plays. It came from <em>the dinner table</em>.</blockquote>
     </div>
   </section>
 
   <section data-phase="toss" data-rail="Toss">
-    <div class="inner">
+    <div class="col">
       <div class="phase">Toss</div>
-      <h2 class="phase-ko" data-l="ko">토스 — 올려주는 것</h2>
-      <h2 class="phase-ko" data-l="en">Toss — setting others up</h2>
+      <h2 data-l="ko">토스 — 올려주는 것</h2>
+      <h2 data-l="en">Toss — setting others up</h2>
       <div class="q" data-l="ko">그런데 왜 지도까지 만들었어요?</div>
       <div class="q" data-l="en">So why go as far as building a map?</div>
       <div class="a" data-l="ko">
-        <p>우연히 한 형 덕에 6인제를 시작했고, 그 형을 따라다니며 얼굴을 트니까 초대가 계속 이어졌어요. 어느새 제가 "어디서 운동할 수 있어요?"라는 DM을 받는 사람이 돼 있었죠. 그 DM에 하나하나 답하다가 — 아, <strong>지도를 만들어야겠다.</strong></p>
-        <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요. 연결이 성사된 걸 <strong>양쪽에서 확인하는 순간.</strong></p>
+        <p>우연히 한 형 덕에 6인제를 시작했고, 그 형을 따라다니며 얼굴을 트니까 초대가 계속 이어졌어요. 어느새 제가 "어디서 운동할 수 있어요?"라는 DM을 받는 사람이 돼 있었죠. 그 DM에 하나하나 답하다가 — 아, 지도를 만들어야겠다.</p>
+        <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요.</p>
       </div>
       <div class="a" data-l="en">
-        <p>I got into 6-a-side by chance, through an older guy at a club. Following him around and meeting people, the invitations kept coming. Before long I was the one getting DMs asking "where can I play?" After answering them one by one — oh. <strong>I should make a map.</strong></p>
-        <p>The best part is when the person I introduced says "that was great, thanks," and the club says "a good one came by." <strong>The moment a connection is confirmed from both sides.</strong></p>
+        <p>I got into 6-a-side by chance, through an older guy at a club. Following him around and meeting people, the invitations kept coming. Before long I was the one getting DMs asking "where can I play?" After answering them one by one — oh. I should make a map.</p>
+        <p>The best part is when the person I introduced says "that was great, thanks," and the club says "a good one came by."</p>
       </div>
+      <blockquote data-l="ko">연결이 성사된 걸 <em>양쪽에서 확인하는 순간.</em></blockquote>
+      <blockquote data-l="en">The moment a connection is confirmed <em>from both sides.</em></blockquote>
     </div>
   </section>
 
   <section data-phase="spike" data-rail="Spike">
-    <div class="inner">
+    <div class="col">
       <div class="phase">Spike</div>
-      <h2 class="phase-ko" data-l="ko">스파이크 — 하고 싶은 말</h2>
-      <h2 class="phase-ko" data-l="en">Spike — what I want to say</h2>
+      <h2 data-l="ko">스파이크 — 하고 싶은 말</h2>
+      <h2 data-l="en">Spike — what I want to say</h2>
       <div class="q" data-l="ko">한국 배구판에 하고 싶은 말은?</div>
       <div class="q" data-l="en">What would you say to the volleyball scene in Korea?</div>
       <div class="a" data-l="ko">
         <p>좀 폐쇄적이에요. 정보가 카페 안에 있으니 가입자가 아니면 시작조차 어렵죠. 풋살이나 농구는 집 근처에서 언제든 할 수 있잖아요.</p>
-        <p class="spike-line">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></p>
       </div>
       <div class="a" data-l="en">
         <p>It's a bit closed off. The information lives inside members-only forums, so if you're not in, you can't even start. With futsal or basketball you just show up near your place and play.</p>
-        <p class="spike-line">I want volleyball to be like that.<br><em>Anywhere, anytime.</em></p>
       </div>
-      <div class="q" style="margin-top:30px" data-l="ko">그래서 다음으로 준비하는 게?</div>
-      <div class="q" style="margin-top:30px" data-l="en">So what are you working on next?</div>
+      <blockquote data-l="ko">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></blockquote>
+      <blockquote data-l="en">I want volleyball to be like that.<br><em>Anywhere, anytime.</em></blockquote>
+
+      <div class="q" data-l="ko">그래서 다음으로 준비하는 게?</div>
+      <div class="q" data-l="en">So what are you working on next?</div>
       <div class="a" data-l="ko">
-        <p>AI 심판이요. 9인제 하던 사람들이 6인제를 안 하게 되는 제일 큰 걸림돌이 <strong>로테이션</strong>이거든요. 규칙이 어려워서 못 즐기는 일이 없도록, 더 많은 사람이 6인제를 즐겼으면 해서 만들고 있어요.</p>
+        <p>AI 심판이요. 9인제 하던 사람들이 6인제를 안 하게 되는 제일 큰 걸림돌이 로테이션이거든요. 규칙이 어려워서 못 즐기는 일이 없도록 만들고 있어요.</p>
       </div>
       <div class="a" data-l="en">
-        <p>An AI referee. The biggest thing keeping 9-a-side players from switching to 6-a-side is <strong>rotation</strong>. I'm building it so nobody misses out just because the rules are hard — I want more people to enjoy the six-player game.</p>
+        <p>An AI referee. The biggest thing keeping 9-a-side players from switching to 6-a-side is rotation. I'm building it so nobody misses out just because the rules are hard.</p>
       </div>
     </div>
   </section>
 
-  <section class="floor-section" data-phase="land" data-rail="Land">
-    <div class="inner">
-      <div class="q" style="text-align:center" data-l="ko">여기까지 스크롤한 사람에게 바라는 게 있다면?</div>
-      <div class="q" style="text-align:center" data-l="en">Anything you'd ask of someone who scrolled this far?</div>
+  <section data-phase="land" data-rail="Land">
+    <div class="col">
+      <div class="q" data-l="ko">여기까지 스크롤한 사람에게 바라는 게 있다면?</div>
+      <div class="q" data-l="en">Anything you'd ask of someone who scrolled this far?</div>
       <div class="a" data-l="ko">
-        <p>배구를 더 사랑해줬으면 좋겠어요. 그리고 그냥 누룽지가 궁금했던 거라면 — <strong>그걸로 충분해요.</strong></p>
+        <p>배구를 더 사랑해줬으면 좋겠어요.</p>
       </div>
       <div class="a" data-l="en">
-        <p>I hope you come to love volleyball a little more. And if you were just curious about Nulloongzi — <strong>that's enough.</strong></p>
+        <p>I hope you come to love volleyball a little more.</p>
       </div>
-      <div class="links land-links">
+      <blockquote data-l="ko">그리고 그냥 누룽지가 궁금했던 거라면 — <em>그걸로 충분해요.</em></blockquote>
+      <blockquote data-l="en">And if you were just curious about Nulloongzi — <em>that's enough.</em></blockquote>
+      <div class="links" style="margin-top:38px">
         <a class="btn primary" href="https://do.nulloongzi.com/"><span data-l="ko">누룽지도 열어보기</span><span data-l="en">Open the map</span></a>
         <a class="btn ghost" href="#projects"><span data-l="ko">만드는 것들 ↓</span><span data-l="en">What I build ↓</span></a>
       </div>
@@ -353,14 +335,14 @@
 
 <div class="outro">
   <div class="wrap">
-    <section class="outro-sec" id="projects" style="min-height:0;display:block;padding:40px 0">
-      <h2><span data-l="ko">만드는 것들</span><span data-l="en">What I build</span></h2>
+    <section id="projects">
+      <h3 class="sec"><span data-l="ko">만드는 것들</span><span data-l="en">What I build</span></h3>
 
       <div class="card">
-        <h3>🗺️ <span data-l="ko">누룽지도</span><span data-l="en">Nulloongzi-do (Volleyball Map)</span>
-          <span class="badge"><span data-l="ko">운영 중</span><span data-l="en">Live</span></span></h3>
-        <p class="desc" data-l="ko">전국 배구 동호회를 지도 한 눈에. 지역·요일·대상으로 찾아 바로 연락하고, 오늘 뛸 픽업 게임까지. 마음에 든 팀은 도시락에 담아두고, 코트에선 안치기로 라운드를 자동 배치. 한국어·영어 지원.</p>
-        <p class="desc" data-l="en">Volleyball clubs across Korea on one map. Filter by region, day and who plays, reach out to clubs directly, and find today's pickup games. Save teams to your lunchbox, and let Anchigi sort out the rounds courtside. Korean and English.</p>
+        <h4><span data-l="ko">누룽지도</span><span data-l="en">Nulloongzi-do</span>
+          <span class="badge"><span data-l="ko">운영 중</span><span data-l="en">Live</span></span></h4>
+        <p class="desc" data-l="ko">전국 배구 동호회를 지도 한 눈에. 지역·요일·대상으로 찾아 바로 연락하고, 오늘 뛸 픽업 게임까지. 마음에 든 팀은 도시락에 담아두고, 코트에선 안치기로 라운드를 자동 배치.</p>
+        <p class="desc" data-l="en">Volleyball clubs across Korea on one map. Filter by region, day and who plays, reach out directly, and find today's pickup games. Save teams to your lunchbox, and let Anchigi sort out the rounds courtside.</p>
         <div class="links">
           <a class="btn primary" href="https://do.nulloongzi.com/"><span data-l="ko">웹에서 열기</span><span data-l="en">Open the map</span></a>
           <a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.nulloongzi.nulloongzido">Google Play</a>
@@ -368,28 +350,28 @@
       </div>
 
       <div class="card">
-        <h3>🏐 <span data-l="ko">안치기</span><span data-l="en">Anchigi (Round Maker)</span>
-          <span class="badge"><span data-l="ko">누룽지도 안에서</span><span data-l="en">Part of the map</span></span></h3>
-        <p class="desc" data-l="ko">참석자와 가능 포지션만 넣으면 라운드별 팀 배치를 즉석에서 짜주는 도구. 출전·대기·포지션이 고르게 돌아가도록 누적 기록을 보고 배분합니다. 로그인 없이 바로.</p>
-        <p class="desc" data-l="en">Put in who showed up and what they can play, and it lays out the teams round by round — balancing court time, bench time and positions as the session goes. No login needed.</p>
+        <h4><span data-l="ko">안치기</span><span data-l="en">Anchigi</span>
+          <span class="badge"><span data-l="ko">누룽지도 안에서</span><span data-l="en">Part of the map</span></span></h4>
+        <p class="desc" data-l="ko">참석자와 가능 포지션만 넣으면 라운드별 팀 배치를 즉석에서 짜주는 도구. 출전·대기·포지션이 고르게 돌아가도록 배분합니다. 로그인 없이 바로.</p>
+        <p class="desc" data-l="en">Put in who showed up and what they can play, and it lays out the teams round by round — balancing court time, bench time and positions. No login needed.</p>
         <div class="links">
           <a class="btn primary" href="https://do.nulloongzi.com/anchigi.html"><span data-l="ko">웹에서 열기</span><span data-l="en">Open Anchigi</span></a>
         </div>
       </div>
 
       <div class="card">
-        <h3>🤖 <span data-l="ko">AI 심판</span><span data-l="en">AI Referee</span>
-          <span class="badge soon"><span data-l="ko">준비 중</span><span data-l="en">Coming soon</span></span></h3>
+        <h4><span data-l="ko">AI 심판</span><span data-l="en">AI Referee</span>
+          <span class="badge soon"><span data-l="ko">준비 중</span><span data-l="en">Coming soon</span></span></h4>
         <p class="desc" data-l="ko">9인제에서 6인제로 넘어갈 때 제일 큰 걸림돌이 로테이션이에요. 규칙이 어려워서 못 즐기는 일이 없도록 만들고 있습니다.</p>
         <p class="desc" data-l="en">Rotation is the biggest thing keeping 9-a-side players from moving to the six-player game. Building it so nobody misses out just because the rules are hard.</p>
       </div>
     </section>
 
-    <section class="outro-sec" style="min-height:0;display:block;padding:40px 0">
-      <h2><span data-l="ko">연락</span><span data-l="en">Contact</span></h2>
+    <section>
+      <h3 class="sec"><span data-l="ko">연락</span><span data-l="en">Contact</span></h3>
       <p data-l="ko">배구, 협업, 클럽 등록 문의 모두 환영합니다.</p>
       <p data-l="en">Volleyball, collaboration, or club registration — all welcome.</p>
-      <div class="links" style="margin-top:16px" id="contactLinks"></div>
+      <div class="links" style="margin-top:18px" id="contactLinks"></div>
     </section>
   </div>
 </div>
@@ -400,618 +382,95 @@
 </footer>
 
 <script>
-  // ── 언어 전환 ──
+  // ── 언어 ──
   (function () {
-    var btn = document.getElementById('langToggle');
-    var root = document.documentElement;
-    var saved = null;
+    var btn = document.getElementById('langToggle'), root = document.documentElement, saved = null;
     try { saved = localStorage.getItem('nz_lang'); } catch (e) {}
     if (!saved) saved = (navigator.language || '').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en';
+    function apply(l){ root.setAttribute('data-lang', l); root.lang = l;
+      btn.textContent = l === 'ko' ? 'EN' : '한국어';
+      try { localStorage.setItem('nz_lang', l); } catch (e) {} }
     apply(saved);
-
-    function apply(lang) {
-      root.setAttribute('data-lang', lang);
-      root.lang = lang;
-      btn.textContent = lang === 'ko' ? 'EN' : '한국어';
-      try { localStorage.setItem('nz_lang', lang); } catch (e) {}
-    }
-    btn.addEventListener('click', function () {
-      apply(root.getAttribute('data-lang') === 'ko' ? 'en' : 'ko');
-    });
+    btn.addEventListener('click', function(){ apply(root.getAttribute('data-lang')==='ko'?'en':'ko'); });
   })();
 
-  // ── 연락처: 빈 url 은 건너뛴다 ──
+  // ── 연락처 ──
   var CONTACT = [
-    { label: "Instagram", url: "https://www.instagram.com/null_oongzi" },
-    { label: "YouTube",   url: "https://www.youtube.com/@ifhungryVB" },
-    { label: "Linktree",  url: "https://linktr.ee/paulyoo999" },
-    { label: "Email",     url: "" }   // 예: "mailto:hello@nulloongzi.com" (Cloudflare Email Routing 설정 후)
+    { label:"Instagram", url:"https://www.instagram.com/null_oongzi" },
+    { label:"YouTube",   url:"https://www.youtube.com/@ifhungryVB" },
+    { label:"Linktree",  url:"https://linktr.ee/paulyoo999" },
+    { label:"Email",     url:"" }
   ];
-  (function renderContacts() {
-    var box = document.getElementById('contactLinks');
-    var shown = 0;
-    for (var i = 0; i < CONTACT.length; i++) {
-      if (!CONTACT[i].url) continue;
+  (function(){
+    var box = document.getElementById('contactLinks'), n = 0;
+    CONTACT.forEach(function(c){
+      if (!c.url) return;
       var a = document.createElement('a');
-      a.className = 'btn ghost';
-      a.href = CONTACT[i].url;
-      a.textContent = CONTACT[i].label;
-      box.appendChild(a);
-      shown++;
-    }
-    if (!shown) box.parentNode.style.display = 'none';
+      a.className = 'btn ghost'; a.href = c.url; a.textContent = c.label;
+      box.appendChild(a); n++;
+    });
+    if (!n) box.parentNode.style.display = 'none';
   })();
 
-  // ── 국면 진행 표시 ──
-  var PHASE_SECTIONS = [].slice.call(document.querySelectorAll('section[data-phase]'));
-  (function buildRail() {
+  // ── 랠리 선: 스크롤이 곧 공의 진행 ──
+  (function () {
+    var arc = document.getElementById('arc');
+    var ball = document.getElementById('ball');
     var rail = document.getElementById('rail');
-    PHASE_SECTIONS.forEach(function (s) {
+    var secs = [].slice.call(document.querySelectorAll('section[data-phase]'));
+    var len = arc.getTotalLength();
+    arc.style.strokeDasharray = len;
+
+    // 국면 → 궤적 진행도. hero 는 공이 서버 손에 머문다.
+    var STOPS = { hero:0, serve:0, serve2:.30, receive:.46, toss:.62, spike:.74, land:.90 };
+    var ORDER = ['hero','serve','serve2','receive','toss','spike','land'];
+
+    secs.forEach(function(s){
       var label = s.getAttribute('data-rail');
+      s.id = s.getAttribute('data-phase');
       if (!label) return;
       var a = document.createElement('a');
-      a.href = '#' + s.getAttribute('data-phase');
-      s.id = s.getAttribute('data-phase');
-      a.setAttribute('data-for', s.getAttribute('data-phase'));
+      a.href = '#' + s.id; a.setAttribute('data-for', s.id);
       a.innerHTML = '<span>' + label + '</span>';
       rail.appendChild(a);
     });
-  })();
+    var dots = [].slice.call(rail.querySelectorAll('a'));
 
-  // ── 섹션 카드 페이드인 ──
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('on'); });
-  }, { threshold: 0.2 });
-  document.querySelectorAll('.inner').forEach(function (el) { io.observe(el); });
+    var cur = '', target = 0, shown = 0, raf = 0;
+    function read() {
+      var y = scrollY + innerHeight * .5, phase = 'land', t = 1;
+      for (var i = 0; i < secs.length; i++) {
+        var s = secs[i], top = s.offsetTop, h = s.offsetHeight;
+        if (y >= top && y < top + h) { phase = s.getAttribute('data-phase'); t = (y - top) / h; break; }
+      }
+      t = Math.max(0, Math.min(1, t));
+      var i0 = ORDER.indexOf(phase); if (i0 < 0) i0 = ORDER.length - 1;
+      var a = STOPS[ORDER[i0]], b = i0 + 1 < ORDER.length ? STOPS[ORDER[i0+1]] : 1;
+      target = a + (b - a) * (t * t * (3 - 2 * t));
+      if (phase !== cur) {
+        cur = phase;
+        dots.forEach(function(d){ d.setAttribute('aria-current', d.getAttribute('data-for') === phase ? 'true':'false'); });
+      }
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+    function tick() {
+      raf = 0;
+      shown += (target - shown) * .16;
+      if (Math.abs(target - shown) < .0004) shown = target; else raf = requestAnimationFrame(tick);
+      arc.style.strokeDashoffset = len * (1 - shown);
+      var p = arc.getPointAtLength(len * shown);
+      ball.setAttribute('transform', 'translate(' + p.x.toFixed(2) + ',' + p.y.toFixed(2) + ') rotate(' + (shown * 900).toFixed(1) + ')');
+    }
+    addEventListener('scroll', read, { passive:true });
+    addEventListener('resize', read);
+    read(); shown = target; tick();
 
-  // ── 인터뷰가 끝나면(후반부 진입) 진행 표시를 감춘다 ──
-  (function hideRailInOutro() {
+    // 후반부에선 국면 표시를 감춘다
     var outro = document.querySelector('.outro');
-    var rail = document.getElementById('rail');
-    if (!outro || !rail) return;
-    new IntersectionObserver(function (entries) {
-      rail.classList.toggle('hidden', entries[0].isIntersecting);
-    }, { threshold: 0.08 }).observe(outro);
+    if (outro) new IntersectionObserver(function(e){
+      rail.classList.toggle('hidden', e[0].isIntersecting);
+    }, { threshold:.08 }).observe(outro);
   })();
-</script>
-
-<script type="module">
-// ── 3D 무대: 쓸 수 있는 환경에서만 불러온다 ──
-// reduced-motion 이면 모듈 자체를 받지 않는다 (685KB 절약 + 접근성).
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage = document.getElementById('stage');
-const railLinks = [].slice.call(document.querySelectorAll('.rail a'));
-const phaseSections = [].slice.call(document.querySelectorAll('section[data-phase]'));
-
-// 진행 표시는 3D 유무와 무관하게 동작해야 한다
-function markRail(phase) {
-  railLinks.forEach(function (a) {
-    a.setAttribute('aria-current', a.getAttribute('data-for') === phase ? 'true' : 'false');
-  });
-}
-
-if (reduced) {
-  document.body.classList.add('no3d');
-  bindRailOnly();
-} else {
-  try {
-    const THREE = await import('./assets/vendor/three.module.min.js');
-    boot(THREE);
-  } catch (e) {
-    document.body.classList.add('no3d');
-    bindRailOnly();
-  }
-}
-
-function bindRailOnly() {
-  function upd() {
-    const y = scrollY + innerHeight * 0.5;
-    let cur = phaseSections[0];
-    for (const s of phaseSections) if (y >= s.offsetTop) cur = s;
-    markRail(cur.getAttribute('data-phase'));
-  }
-  addEventListener('scroll', upd, { passive: true });
-  upd();
-}
-
-function boot(THREE) {
-  // ── 품질 티어: 저사양·모바일은 그림자와 픽셀비를 낮춘다 ──
-  const coarse = matchMedia('(pointer: coarse)').matches;
-  const lowEnd = coarse
-    || (navigator.deviceMemory && navigator.deviceMemory <= 4)
-    || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
-
-  let renderer;
-  try {
-    renderer = new THREE.WebGLRenderer({ antialias: !lowEnd, powerPreference: 'high-performance' });
-  } catch (e) {
-    document.body.classList.add('no3d');
-    bindRailOnly();
-    return;
-  }
-
-  renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = lowEnd ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;   // 필름 톤매핑 — 색 뭉개짐 방지
-  renderer.toneMappingExposure = 1.12;
-  stage.appendChild(renderer.domElement);
-
-  const COL = {
-    cream: 0xfff8e1, wood: 0xc99f6a, zoneBack: 0xfde1a0, zoneFront: 0xf6b83d,
-    line: 0xffffff, dark: 0x4e342e, brown: 0x8d6e63, yellow: 0xfac710,
-    skin: 0xffe9c7, urgent: 0xff7043, hair: 0x3a2b24
-  };
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(COL.cream);
-  scene.fog = new THREE.Fog(0xf6e8c6, 38, 72);
-
-  // 카메라. 세로 화면에서는 수평 화각이 좁아져 코트가 잘리므로, 가로 화각을 유지하도록 fov 를 넓힌다.
-  const BASE_FOV = 50, DESIGN_ASPECT = 1.6;
-  const H_HALF = Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV) / 2) * DESIGN_ASPECT);
-  const camera = new THREE.PerspectiveCamera(BASE_FOV, innerWidth / innerHeight, 0.1, 100);
-  function fitCamera() {
-    const w = innerWidth, h = innerHeight;
-    camera.aspect = w / h;
-    camera.fov = camera.aspect < DESIGN_ASPECT
-      ? Math.min(78, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(H_HALF) / camera.aspect)))
-      : BASE_FOV;
-    camera.updateProjectionMatrix();
-    // 텍스트 카드가 차지한 쪽을 비운다 — 프러스텀을 밀어 장면을 반대쪽으로 보낸다.
-    // 넓은 화면: 카드가 왼쪽 → 장면을 오른쪽으로. 좁은 화면: 카드가 아래 → 장면을 위로.
-    if (w >= 900) camera.setViewOffset(w, h, -w * 0.17, 0, w, h);
-    else camera.setViewOffset(w, h, 0, h * 0.15, w, h);
-    // 세로 화면은 가로 여유가 없어 같은 거리에서도 피사체가 화면을 꽉 채운다 → 카메라를 뒤로 물린다
-    DOLLY = camera.aspect < 1 ? 1.42 : (camera.aspect < DESIGN_ASPECT ? 1.15 : 1);
-  }
-  let DOLLY = 1;
-  fitCamera();
-
-  // ── 조명: 스튜디오 3점 구성 (하늘/바닥 반사 + 키 + 필) ──
-  scene.add(new THREE.HemisphereLight(0xfff6df, 0xc7a273, 0.95));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-  sun.position.set(10, 16, 7);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(lowEnd ? 1024 : 2048, lowEnd ? 1024 : 2048);
-  sun.shadow.camera.left = -14; sun.shadow.camera.right = 14;
-  sun.shadow.camera.top = 14; sun.shadow.camera.bottom = -14;
-  sun.shadow.radius = lowEnd ? 2 : 6;
-  sun.shadow.bias = -0.0004;
-  scene.add(sun);
-  const fill = new THREE.DirectionalLight(0xffe9bf, 0.45);
-  fill.position.set(-12, 9, -6);
-  scene.add(fill);
-
-  const mat = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0 });
-
-  // ── 바닥: 체육관 마루 (나무 플랭크 텍스처) & 코트 (18 × 9, 네트 z=0) ──
-  const woodCanvas = document.createElement('canvas');
-  woodCanvas.width = 256; woodCanvas.height = 256;
-  const wc = woodCanvas.getContext('2d');
-  wc.fillStyle = '#c99f6a'; wc.fillRect(0, 0, 256, 256);
-  for (let pl = 0; pl < 4; pl++) {
-    wc.fillStyle = pl % 2 ? '#c2965f' : '#cfa672';
-    wc.fillRect(0, pl * 64, 256, 64);
-    wc.fillStyle = 'rgba(140,100,60,0.35)';
-    wc.fillRect(0, pl * 64, 256, 2);
-    wc.fillRect((pl * 96 + 40) % 256, pl * 64, 2, 64);
-    wc.fillStyle = 'rgba(255,235,200,0.12)';
-    for (let gr = 0; gr < 5; gr++) wc.fillRect(0, pl * 64 + 12 + gr * 10, 256, 1);
-  }
-  const woodTex = new THREE.CanvasTexture(woodCanvas);
-  woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
-  woodTex.repeat.set(9, 9);
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(70, 70),
-    new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.85 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  function zone(w, d, x, z, color) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat(color));
-    m.rotation.x = -Math.PI / 2;
-    m.position.set(x, 0.02, z);
-    m.receiveShadow = true;
-    scene.add(m);
-  }
-  zone(9, 6, 0, 6, COL.zoneBack);    // A 후위
-  zone(9, 3, 0, 1.5, COL.zoneFront); // A 전위
-  zone(9, 3, 0, -1.5, COL.zoneFront);// B 전위
-  zone(9, 6, 0, -6, COL.zoneBack);   // B 후위
-
-  function line(w, d, x, z) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), mat(COL.line));
-    m.position.set(x, 0.035, z);
-    scene.add(m);
-  }
-  line(0.12, 18.1, -4.5, 0); line(0.12, 18.1, 4.5, 0);  // 사이드
-  line(9.1, 0.12, 0, 9); line(9.1, 0.12, 0, -9);        // 엔드
-  line(9.1, 0.12, 0, 3); line(9.1, 0.12, 0, -3);        // 어택(3m)
-  line(9.1, 0.12, 0, 0);                                 // 센터
-
-  // ── 네트 ──
-  const postGeo = new THREE.CylinderGeometry(0.09, 0.09, 2.55, 10);
-  [-5.1, 5.1].forEach((x) => {
-    const p = new THREE.Mesh(postGeo, mat(COL.dark));
-    p.position.set(x, 1.275, 0);
-    p.castShadow = true;
-    scene.add(p);
-  });
-  const band = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.16, 0.05), mat(COL.line));
-  band.position.set(0, 2.42, 0);
-  band.castShadow = true;
-  scene.add(band);
-
-  const meshCanvas = document.createElement('canvas');
-  meshCanvas.width = 1024; meshCanvas.height = 128;
-  const mc = meshCanvas.getContext('2d');
-  mc.clearRect(0, 0, 1024, 128);
-  mc.strokeStyle = 'rgba(255,253,246,0.8)'; mc.lineWidth = 1.5;
-  for (let gx = 0; gx <= 1024; gx += 10) { mc.beginPath(); mc.moveTo(gx, 0); mc.lineTo(gx, 128); mc.stroke(); }
-  for (let gy = 0; gy <= 128; gy += 10) { mc.beginPath(); mc.moveTo(0, gy); mc.lineTo(1024, gy); mc.stroke(); }
-  const meshTex = new THREE.CanvasTexture(meshCanvas);
-  const netMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(10.2, 1.0),
-    new THREE.MeshStandardMaterial({ map: meshTex, transparent: true, side: THREE.DoubleSide, roughness: 1 })
-  );
-  netMesh.position.set(0, 1.85, 0);
-  scene.add(netMesh);
-
-  // 안테나 (홍백 스트라이프)
-  const antCanvas = document.createElement('canvas');
-  antCanvas.width = 8; antCanvas.height = 64;
-  const ac = antCanvas.getContext('2d');
-  for (let s = 0; s < 8; s++) { ac.fillStyle = s % 2 ? '#fffdf6' : '#ff7043'; ac.fillRect(0, s * 8, 8, 8); }
-  const antTex = new THREE.CanvasTexture(antCanvas);
-  [-4.5, 4.5].forEach((x) => {
-    const a = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.035, 0.035, 1.7, 8),
-      new THREE.MeshStandardMaterial({ map: antTex, roughness: 0.8 })
-    );
-    a.position.set(x, 2.42 + 0.55, 0);
-    a.castShadow = true;
-    scene.add(a);
-  });
-
-  // ── 클래식 배구공 (스월 텍스처) ──
-  const ballCanvas = document.createElement('canvas');
-  ballCanvas.width = 512; ballCanvas.height = 256;
-  const bc = ballCanvas.getContext('2d');
-  bc.fillStyle = '#fffdf6'; bc.fillRect(0, 0, 512, 256);
-  bc.strokeStyle = '#a58974'; bc.lineWidth = 5; bc.lineCap = 'round';
-  for (let k = 0; k < 4; k++) {
-    const ox = k * 128;
-    bc.beginPath(); bc.moveTo(ox, 40); bc.bezierCurveTo(ox + 50, 90, ox + 78, 160, ox + 64, 236); bc.stroke();
-    bc.beginPath(); bc.moveTo(ox + 64, 20); bc.bezierCurveTo(ox + 110, 70, ox + 120, 150, ox + 128, 210); bc.stroke();
-  }
-  const ballTex = new THREE.CanvasTexture(ballCanvas);
-  const ball = new THREE.Mesh(
-    new THREE.SphereGeometry(0.35, 24, 18),
-    new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.7 })
-  );
-  ball.castShadow = true;
-  scene.add(ball);
-
-  // ── 밥그릇 (랠리 종착지, 코트 밖) ──
-  const bowlPts = [
-    new THREE.Vector2(0, 0), new THREE.Vector2(0.42, 0), new THREE.Vector2(0.62, 0.08),
-    new THREE.Vector2(0.9, 0.5), new THREE.Vector2(0.94, 0.64), new THREE.Vector2(0.86, 0.66),
-    new THREE.Vector2(0.6, 0.34), new THREE.Vector2(0.36, 0.28), new THREE.Vector2(0, 0.26)
-  ];
-  const bowl = new THREE.Mesh(
-    new THREE.LatheGeometry(bowlPts, 28),
-    new THREE.MeshStandardMaterial({ color: 0xa1887f, roughness: 0.9, side: THREE.DoubleSide })
-  );
-  bowl.position.set(-3.2, 0, 11);
-  bowl.castShadow = true; bowl.receiveShadow = true;
-  scene.add(bowl);
-
-  // ── 빈(bean) 캐릭터 ──
-  function makeBean(uniform) {
-    const g = new THREE.Group();
-    const legGeo = new THREE.CapsuleGeometry(0.105, 0.2, 4, 10);
-    [-0.14, 0.14].forEach((x) => {
-      const leg = new THREE.Mesh(legGeo, mat(COL.dark));
-      leg.position.set(x, 0.27, 0);
-      leg.castShadow = true;
-      g.add(leg);
-    });
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.42, 6, 14), mat(uniform));
-    torso.position.y = 0.85;
-    torso.castShadow = true;
-    g.add(torso);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.33, 20, 16), mat(COL.skin));
-    head.position.y = 1.54;
-    head.castShadow = true;
-    g.add(head);
-    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.335, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.42), mat(COL.hair));
-    hair.position.y = 1.585;
-    hair.rotation.x = -0.22;
-    g.add(hair);
-    [-0.11, 0.11].forEach((x) => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.033, 8, 6), mat(COL.hair));
-      eye.position.set(x, 1.56, 0.3);
-      g.add(eye);
-    });
-    [-0.18, 0.18].forEach((x) => {
-      const blush = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), mat(0xffab91));
-      blush.scale.z = 0.4;
-      blush.position.set(x, 1.49, 0.27);
-      g.add(blush);
-    });
-    function arm(side) {
-      const pivot = new THREE.Group();
-      pivot.position.set(side * 0.33, 1.14, 0);
-      const a = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.38, 4, 10), mat(uniform));
-      a.position.y = -0.26;
-      a.castShadow = true;
-      pivot.add(a);
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 8), mat(COL.skin));
-      hand.position.y = -0.5;
-      hand.castShadow = true;
-      pivot.add(hand);
-      g.add(pivot);
-      return pivot;
-    }
-    g.userData.armL = arm(-1);
-    g.userData.armR = arm(1);
-    return g;
-  }
-
-  // ── 선수 4인 ──
-  // 기본은 '준비 자세'. 극적인 포즈는 공이 닿는 순간 전후에만 잡는다.
-  // 정지된 스파이크 포즈는 고장으로 읽히지만, 서 있는 준비 자세는 의도로 읽힌다.
-  function place(bean, x, z, faceY) {
-    bean.position.set(x, 0, z);
-    bean.rotation.y = faceY;
-    bean.userData.baseY = 0;
-    bean.userData.phase = Math.random() * Math.PI * 2;   // 숨쉬기 위상
-    scene.add(bean);
-    return bean;
-  }
-
-  const server   = place(makeBean(COL.yellow), 1.5, 10, Math.PI);   // 네트(-z) 바라봄
-  const receiver = place(makeBean(COL.brown), -2, -5.9, 0);
-  const setter   = place(makeBean(COL.brown), 0.5, -1.05, 0);
-  const spiker   = place(makeBean(COL.brown), -2.1, -0.75, 0);
-
-  // ── 키프레임 보간: s(-1 준비 → 0 임팩트 → +1 준비 복귀) ──
-  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-  function track(keys, s) {
-    if (s <= keys[0][0]) return keys[0][1];
-    for (let i = 0; i < keys.length - 1; i++) {
-      const [sa, va] = keys[i], [sb, vb] = keys[i + 1];
-      if (s <= sb) return va + (vb - va) * ease(clamp01((s - sa) / (sb - sa)));
-    }
-    return keys[keys.length - 1][1];
-  }
-
-  // 공이 각 선수에게 닿는 지점(전역 진행도)과 동작 창
-  const PHASE_IDX = { hero: 0, serve: 1, serve2: 2, receive: 3, toss: 4, spike: 5, land: 6 };
-  const PHASE_N = 7;
-  const ACTS = [
-    { who: server,   at: 1 / PHASE_N,       lead: .06, trail: .05, kind: 'serve' },
-    { who: receiver, at: 3 / PHASE_N,       lead: .05, trail: .06, kind: 'dig'   },
-    { who: setter,   at: 4 / PHASE_N,       lead: .05, trail: .05, kind: 'set'   },
-    { who: spiker,   at: 5 / PHASE_N,       lead: .06, trail: .07, kind: 'spike' }
-  ];
-
-  // 동작별 트랙 — 준비 → 장전 → 임팩트 → 복귀
-  const MOVES = {
-    serve: (b, s) => {
-      b.userData.armL.rotation.z = track([[-1,-.25],[-.4,-2.6],[.1,-1.4],[1,-.2]], s);  // 토스 올렸다 내림
-      b.userData.armR.rotation.x = track([[-1,.1],[-.25,1.15],[.12,-1.05],[1,.08]], s); // 뒤로 당겼다 스윙
-      b.userData.armR.rotation.z = 0;
-      b.userData.armL.rotation.x = 0;
-      b.rotation.x = track([[-1,0],[-.2,-.12],[.15,.14],[1,0]], s);
-    },
-    dig: (b, s) => {
-      const a = track([[-1,-.28],[-.2,-1.18],[.15,-1.02],[1,-.24]], s);
-      b.userData.armL.rotation.x = a; b.userData.armR.rotation.x = a;
-      b.userData.armL.rotation.z = -.25; b.userData.armR.rotation.z = .25;
-      b.rotation.x = track([[-1,.04],[-.1,.32],[.25,.1],[1,.04]], s);
-      b.userData.baseY = track([[-1,0],[-.08,-.24],[.22,.03],[1,0]], s);                 // 낮춰 받고 일어남
-    },
-    set: (b, s) => {
-      const z = track([[-1,2.15],[-.15,2.72],[.12,3.02],[1,2.15]], s);                   // 두 손 밀어 올림
-      b.userData.armL.rotation.z = -z; b.userData.armR.rotation.z = z;
-      b.userData.armL.rotation.x = 0; b.userData.armR.rotation.x = 0;
-      b.userData.baseY = track([[-1,0],[-.1,-.12],[.15,.05],[1,0]], s);
-    },
-    spike: (b, s) => {
-      b.userData.baseY = track([[-1,0],[-.35,.06],[-.05,1.28],[.2,1.18],[.62,0],[1,0]], s); // 도움닫기 → 점프 → 착지
-      b.userData.armR.rotation.z = track([[-1,.35],[-.18,2.62],[.14,.45],[1,.3]], s);       // 팔 올렸다 내려침
-      b.userData.armL.rotation.x = track([[-1,-.18],[-.18,-.95],[.2,-.2],[1,-.16]], s);
-      b.userData.armR.rotation.x = 0;
-      b.userData.armL.rotation.z = 0;
-      b.rotation.x = track([[-1,0],[-.1,-.2],[.3,.08],[1,0]], s);
-    }
-  };
-
-  function applyPoses(g, time) {
-    for (const act of ACTS) {
-      const d = g - act.at;
-      const s = d < 0 ? Math.max(-1, d / act.lead) : Math.min(1, d / act.trail);
-      MOVES[act.kind](act.who, s);
-      // 숨쉬기 — 정지 구간에서도 장면이 죽지 않게
-      const idle = Math.abs(s) > .9 ? Math.sin(time * 1.5 + act.who.userData.phase) * .012 : 0;
-      act.who.position.y = act.who.userData.baseY + idle;
-    }
-  }
-
-  // ── 소품: 심판대 + 심판, 벤치 + 물병 ──
-  const refStand = new THREE.Group();
-  const platform = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.7), mat(COL.brown));
-  platform.position.y = 1.55;
-  platform.castShadow = true;
-  refStand.add(platform);
-  [[-0.28, -0.28], [0.28, -0.28], [-0.28, 0.28], [0.28, 0.28]].forEach((p) => {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 1.55, 8), mat(COL.dark));
-    leg.position.set(p[0], 0.775, p[1]);
-    leg.castShadow = true;
-    refStand.add(leg);
-  });
-  const rail2 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.05, 0.06), mat(COL.dark));
-  rail2.position.set(0, 2.05, 0.32);
-  refStand.add(rail2);
-  refStand.position.set(5.9, 0, 0);
-  scene.add(refStand);
-  const referee = makeBean(0xd7ccc8);
-  referee.scale.setScalar(0.85);
-  referee.position.set(5.9, 1.59, 0);
-  referee.rotation.y = -Math.PI / 2;   // 코트 바라봄
-  scene.add(referee);
-
-  const bench = new THREE.Group();
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.55), mat(COL.brown));
-  seat.position.y = 0.5;
-  seat.castShadow = true;
-  bench.add(seat);
-  [[-1.05, 0], [1.05, 0]].forEach((p) => {
-    const bl = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.45), mat(COL.dark));
-    bl.position.set(p[0], 0.25, p[1]);
-    bl.castShadow = true;
-    bench.add(bl);
-  });
-  [-0.7, -0.45].forEach((x, i) => {
-    const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.22, 8), mat(i ? COL.yellow : COL.urgent));
-    bottle.position.set(x, 0.66, 0.1);
-    bottle.castShadow = true;
-    bench.add(bottle);
-  });
-  bench.position.set(7.2, 0, -5.5);
-  bench.rotation.y = -Math.PI / 2.3;
-  scene.add(bench);
-
-  // ── 랠리 궤적 (3D 베지어) ──
-  const HAND = new THREE.Vector3(1.15, 1.9, 9.8);
-  const PATHS = {
-    hero:    { A: HAND, C: HAND, B: HAND },
-    serve:   { A: HAND, C: new THREE.Vector3(0.4, 6.8, 3), B: new THREE.Vector3(-1.2, 3.6, -3.2) },
-    serve2:  { A: new THREE.Vector3(-1.2, 3.6, -3.2), C: new THREE.Vector3(-1.8, 2.0, -5.0), B: new THREE.Vector3(-2, 1.15, -5.75) },
-    receive: { A: new THREE.Vector3(-2, 1.15, -5.75), C: new THREE.Vector3(-1.2, 5.4, -3.6), B: new THREE.Vector3(0.45, 2.35, -1.1) },
-    toss:    { A: new THREE.Vector3(0.45, 2.35, -1.1), C: new THREE.Vector3(-0.6, 5.8, -0.9), B: new THREE.Vector3(-1.9, 4.1, -0.75) },
-    spike:   { A: new THREE.Vector3(-1.9, 4.1, -0.75), C: new THREE.Vector3(-1.5, 2.7, 1.3), B: new THREE.Vector3(-1.1, 0.36, 4.2) }
-  };
-  // 착지 바운드: (x,z) 등속, 홉별 포물선
-  const HOPS = [
-    { a: new THREE.Vector3(-1.1, 0.36, 4.2), b: new THREE.Vector3(-1.7, 0.36, 6.4), h: 2.0 },
-    { a: new THREE.Vector3(-1.7, 0.36, 6.4), b: new THREE.Vector3(-2.3, 0.36, 8.2), h: 1.1 },
-    { a: new THREE.Vector3(-2.3, 0.36, 8.2), b: new THREE.Vector3(-2.8, 0.36, 9.6), h: 0.55 },
-    { a: new THREE.Vector3(-2.8, 0.36, 9.6), b: new THREE.Vector3(-3.05, 0.36, 10.4), h: 0.28 },
-    { a: new THREE.Vector3(-3.05, 0.36, 10.4), b: new THREE.Vector3(-3.2, 0.68, 11), h: 0.6 }  // 그릇 안으로
-  ];
-
-  function bezier3(seg, t, out) {
-    const u = 1 - t;
-    out.set(
-      u*u*seg.A.x + 2*u*t*seg.C.x + t*t*seg.B.x,
-      u*u*seg.A.y + 2*u*t*seg.C.y + t*t*seg.B.y,
-      u*u*seg.A.z + 2*u*t*seg.C.z + t*t*seg.B.z
-    );
-  }
-  const SPANS = HOPS.map((h) => h.a.distanceTo(h.b));
-  const SPAN_TOTAL = SPANS.reduce((s, v) => s + v, 0);
-  function bouncePos(t, out) {
-    const SETTLE = 0.1;
-    if (t >= 1 - SETTLE) { out.copy(HOPS[HOPS.length - 1].b); return; }
-    let d = (t / (1 - SETTLE)) * SPAN_TOTAL;
-    for (let i = 0; i < HOPS.length; i++) {
-      if (d <= SPANS[i] || i === HOPS.length - 1) {
-        const k = SPANS[i] ? Math.min(1, d / SPANS[i]) : 1;
-        const h = HOPS[i];
-        out.lerpVectors(h.a, h.b, k);
-        out.y = THREE.MathUtils.lerp(h.a.y, h.b.y, k) + h.h * 4 * k * (1 - k);
-        return;
-      }
-      d -= SPANS[i];
-    }
-  }
-
-  // ── 카메라 키프레임 (국면 시작 시점의 pos / lookAt) ──
-  const CAMS = {
-    hero:   { p: new THREE.Vector3(13, 7.5, 17),     t: new THREE.Vector3(0, 0.6, 0.5) },
-    serve:  { p: new THREE.Vector3(3.4, 2.8, 14.2),  t: new THREE.Vector3(-0.2, 2.8, 0) },
-    serve2: { p: new THREE.Vector3(8.6, 5.0, -1.8),  t: new THREE.Vector3(-1.8, 1.6, -5.2) },
-    receive:{ p: new THREE.Vector3(-9.0, 3.6, -10.5), t: new THREE.Vector3(0.4, 1.8, -1.2) },
-    toss:   { p: new THREE.Vector3(-7.0, 2.6, -4.6), t: new THREE.Vector3(-0.8, 2.8, -0.8) },
-    spike:  { p: new THREE.Vector3(-6.6, 2.7, 9.2),  t: new THREE.Vector3(-1.8, 2.7, -0.4) },
-    land:   { p: new THREE.Vector3(-0.2, 3.4, 7.6),  t: new THREE.Vector3(-2.6, 0.5, 9.8) },
-    end:    { p: new THREE.Vector3(-0.4, 3.6, 17),   t: new THREE.Vector3(-3.2, 0.9, 11) }
-  };
-  const NEXT = { hero: 'serve', serve: 'serve2', serve2: 'receive', receive: 'toss', toss: 'spike', spike: 'land', land: 'end' };
-
-  const ballPos = new THREE.Vector3().copy(HAND);
-  const desiredP = CAMS.hero.p.clone();
-  const desiredT = CAMS.hero.t.clone();
-  const smoothP = desiredP.clone();
-  const smoothT = desiredT.clone();
-  camera.position.copy(smoothP);
-  camera.lookAt(smoothT);
-
-  const ease = (t) => t * t * (3 - 2 * t);
-  let railPhase = '';
-  let gProgress = 0;          // 랠리 전역 진행도 0..1 — 선수 동작 타이밍의 기준
-
-  function readScroll() {
-    const vh = innerHeight;
-    const y = scrollY + vh * 0.5;
-    let current = 'land', t = 1;
-    for (const s of phaseSections) {
-      const top = s.offsetTop, h = s.offsetHeight;
-      if (y >= top && y < top + h) {
-        current = s.getAttribute('data-phase');
-        t = (y - top) / h;
-        break;
-      }
-    }
-    t = Math.min(1, Math.max(0, t));
-    gProgress = ((PHASE_IDX[current] ?? 6) + t) / PHASE_N;
-
-    // 공 위치 (착지 구간은 스크롤 60% 지점에서 바운드 완결 — 끝까지 못 가도 그릇에 담기게)
-    if (current === 'land') bouncePos(Math.min(1, t / 0.6), ballPos);
-    else bezier3(PATHS[current] || PATHS.hero, t, ballPos);
-
-    // 카메라: 현 국면 키프레임 → 다음 국면 키프레임으로 보간
-    const a = CAMS[current] || CAMS.hero;
-    const b = CAMS[NEXT[current]] || a;
-    const et = ease(t);
-    desiredP.lerpVectors(a.p, b.p, et);
-    desiredT.lerpVectors(a.t, b.t, et);
-    if (DOLLY !== 1) desiredP.sub(desiredT).multiplyScalar(DOLLY).add(desiredT);   // 타깃에서 뒤로
-
-    if (current !== railPhase) { railPhase = current; markRail(current); }
-  }
-
-  let lastScrollY = -1, first = true;
-  function frame() {
-    if (scrollY !== lastScrollY) { lastScrollY = scrollY; readScroll(); }
-    smoothP.lerp(desiredP, 0.09);
-    smoothT.lerp(desiredT, 0.09);
-    camera.position.copy(smoothP);
-    camera.lookAt(smoothT);
-    ball.position.copy(ballPos);
-    ball.rotation.z = -scrollY * 0.004;
-    ball.rotation.x = scrollY * 0.002;
-    applyPoses(gProgress, performance.now() / 1000);
-    renderer.render(scene, camera);
-    if (first) { first = false; stage.classList.add('ready'); }   // 첫 프레임 후 페이드인
-    requestAnimationFrame(frame);
-  }
-  readScroll();
-  smoothP.copy(desiredP); smoothT.copy(desiredT);
-  requestAnimationFrame(frame);
-
-  addEventListener('resize', () => {
-    fitCamera();
-    renderer.setSize(innerWidth, innerHeight);
-    readScroll();
-  });
-}
 </script>
 </body>
 </html>
