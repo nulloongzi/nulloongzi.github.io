@@ -139,9 +139,9 @@
       <div class="card">
         <h3>🗺️ <span data-ko="누룽지도" data-en="Nulloongzi-do (Volleyball Map)">누룽지도</span>
           <span class="badge" data-ko="운영 중" data-en="Live">운영 중</span></h3>
-        <p class="desc" data-ko="한국 배구 동호회 찾기 지도. 지역·요일·레벨로 찾고, 클럽에 바로 연락하고, 픽업 게임까지. 한국어·영어 지원."
-           data-en="A map of volleyball clubs across Korea. Search by region, day, and level, contact clubs directly, and find pickup games. Available in Korean and English.">
-          한국 배구 동호회 찾기 지도. 지역·요일·레벨로 찾고, 클럽에 바로 연락하고, 픽업 게임까지. 한국어·영어 지원.</p>
+        <p class="desc" data-ko="전국 배구 동호회를 지도 한 눈에. 지역·요일·대상으로 찾아 바로 연락하고, 오늘 뛸 픽업 게임까지. 마음에 든 팀은 도시락에 담아두고, 코트에선 안치기로 라운드를 자동 배치. 한국어·영어 지원."
+           data-en="Volleyball clubs across Korea on one map. Filter by region, day and who plays, reach out to clubs directly, and find today's pickup games. Save teams to your lunchbox, and let Anchigi sort out the rounds courtside. Korean and English.">
+          전국 배구 동호회를 지도 한 눈에. 지역·요일·대상으로 찾아 바로 연락하고, 오늘 뛸 픽업 게임까지. 마음에 든 팀은 도시락에 담아두고, 코트에선 안치기로 라운드를 자동 배치. 한국어·영어 지원.</p>
         <div class="links">
           <a class="btn primary" href="https://do.nulloongzi.com/" data-ko="웹에서 열기" data-en="Open the map">웹에서 열기</a>
           <a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.nulloongzi.nulloongzido" data-ko="Google Play" data-en="Google Play">Google Play</a>
@@ -149,11 +149,14 @@
       </div>
 
       <div class="card">
-        <h3>🤖 <span data-ko="AI 심판" data-en="AI Referee">AI 심판</span>
-          <span class="badge soon" data-ko="준비 중" data-en="Coming soon">준비 중</span></h3>
-        <p class="desc" data-ko="준비 중인 다음 프로젝트입니다. 곧 소개할게요."
-           data-en="The next project, currently in the works. Details coming soon.">
-          준비 중인 다음 프로젝트입니다. 곧 소개할게요.</p>
+        <h3>🏐 <span data-ko="안치기" data-en="Anchigi (Round Maker)">안치기</span>
+          <span class="badge" data-ko="누룽지도 안에서" data-en="Part of the map">누룽지도 안에서</span></h3>
+        <p class="desc" data-ko="참석자와 가능 포지션만 넣으면 라운드별 팀 배치를 즉석에서 짜주는 도구. 출전·대기·포지션이 고르게 돌아가도록 누적 기록을 보고 배분합니다. 로그인 없이 바로."
+           data-en="Put in who showed up and what they can play, and it lays out the teams round by round — balancing court time, bench time and positions as the session goes. No login needed.">
+          참석자와 가능 포지션만 넣으면 라운드별 팀 배치를 즉석에서 짜주는 도구. 출전·대기·포지션이 고르게 돌아가도록 누적 기록을 보고 배분합니다. 로그인 없이 바로.</p>
+        <div class="links">
+          <a class="btn primary" href="https://do.nulloongzi.com/anchigi.html" data-ko="웹에서 열기" data-en="Open Anchigi">웹에서 열기</a>
+        </div>
       </div>
     </section>
 
@@ -172,28 +175,27 @@
 
   <script>
     // ── 설정: 채워지면 버튼이 자동으로 나타난다 ──
-    var CONTACT = {
-      instagram: "https://www.instagram.com/null_oongzi",
-      email: ""        // 예: "mailto:hello@nulloongzi.com" (Cloudflare Email Routing 설정 후)
-    };
+    // 빈 url 은 건너뛴다 — 채우면 버튼이 자동으로 나타난다.
+    var CONTACT = [
+      { label: "Instagram", url: "https://www.instagram.com/null_oongzi" },
+      { label: "YouTube",   url: "https://www.youtube.com/@ifhungryVB" },
+      { label: "Linktree",  url: "https://linktr.ee/paulyoo999" },
+      { label: "Email",     url: "" }   // 예: "mailto:hello@nulloongzi.com" (Cloudflare Email Routing 설정 후)
+    ];
 
     (function renderContacts() {
       var box = document.getElementById("contactLinks");
-      if (CONTACT.instagram) {
-        var ig = document.createElement("a");
-        ig.className = "btn ghost";
-        ig.href = CONTACT.instagram;
-        ig.textContent = "Instagram";
-        box.appendChild(ig);
+      var shown = 0;
+      for (var i = 0; i < CONTACT.length; i++) {
+        if (!CONTACT[i].url) continue;
+        var a = document.createElement("a");
+        a.className = "btn ghost";
+        a.href = CONTACT[i].url;
+        a.textContent = CONTACT[i].label;
+        box.appendChild(a);
+        shown++;
       }
-      if (CONTACT.email) {
-        var em = document.createElement("a");
-        em.className = "btn ghost";
-        em.href = CONTACT.email;
-        em.textContent = "Email";
-        box.appendChild(em);
-      }
-      if (!CONTACT.instagram && !CONTACT.email) {
+      if (!shown) {
         document.querySelector(".contact").style.display = "none";
       }
     })();
