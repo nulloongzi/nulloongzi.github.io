@@ -525,7 +525,6 @@
       var c = CAM[k], d = DOLLY[k] || 1;
       c.p = [c.t[0]+(c.p[0]-c.t[0])*d, c.t[1]+(c.p[1]-c.t[1])*d, c.t[2]+(c.p[2]-c.t[2])*d];
     });
-    var STRAND_OF = { hero:'serve' };
     var ORDER = ['hero','serve','serve2','receive','toss','spike','land'];
     var NEXT = { hero:'serve', serve:'serve2', serve2:'receive', receive:'toss', toss:'spike', spike:'land', land:'end' };
 
@@ -625,11 +624,11 @@
       return out.length > 1 ? out : null;
     }
 
-    function ballAt(c, P, alpha) {
+    function ballAt(c, P, alpha, swell) {
       var v = toCam(c, P); if (v.z < NEAR) return;
-      var s = scr(v), r = cl(FPX*0.215/v.z, 2.6, 30);
+      var s = scr(v), r = cl(FPX*0.215/v.z, 2.6, 30) * (1 + 0.28*(swell||0));
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#fff8e1'; ctx.strokeStyle = 'rgba('+INK+',1)'; ctx.lineWidth = Math.max(1.1, r*0.13);
+      ctx.fillStyle = '#fff8e1'; ctx.strokeStyle = 'rgba('+INK+',1)'; ctx.lineWidth = Math.max(1.1, r*0.13) * (1 + 0.5*(swell||0));
       ctx.beginPath(); ctx.arc(s[0],s[1],r,0,Math.PI*2); ctx.fill(); ctx.stroke();
       if (r > 5) {          // 배구공 이음선
         ctx.lineWidth = Math.max(0.8, r*0.09); ctx.globalAlpha = alpha*0.5;
@@ -661,8 +660,6 @@
       var cur = ORDER[i0], nxt = NEXT[cur];
       var nxtPhase = i0+1 < ORDER.length ? ORDER[i0+1] : null;
       var tr = TRAJ[cur] || TRAJ.hero;
-      // 히어로에서는 공이 토스를 타는 동안, 코트의 잉크가 곧 이어질 서브 궤적으로 모인다
-      var strandTr = STRAND_OF[cur] ? TRAJ[STRAND_OF[cur]] : tr;
 
       // 전환 진행 w
       var dw = DWELL_D[cur] || DWELL;
@@ -677,8 +674,11 @@
       var bp = smoother((w-0.10)/0.74);
       var ball = at(tr, bp);
 
-      // 모여든 한 가닥 = 이 국면의 궤적 그 자체. 코트의 잉크가 곧 랠리 곡선이 된다
-      var strand = []; for (var si=0; si<NP; si++) strand.push(at(strandTr, si/(NP-1)));
+      // 잉크가 모이는 곳은 선이 아니라 공 한 점이다.
+      // 코트를 그린 잉크가 공에 빨려 들어갔다가, 공이 그 잉크로 궤적을 긋는다.
+      var sink = []; for (var si=0; si<NP; si++) sink.push(ball);
+      // 잉크를 머금고 있는 정도 — 다 모인 순간 1, 다음 코트로 풀어내면 0
+      var ink = cl01(w/GATHER*1.25) * cl01((1-(w-UNFOLD)/(1-UNFOLD))*1.4);
 
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
@@ -690,7 +690,7 @@
         if (seen) stroke3(c, seen);
       }
 
-      // 2) 현재 장면의 코트 — 한 가닥으로 빨려든다
+      // 2) 현재 장면의 코트 — 공 한 점으로 빨려든다
       var rk = RANK[cur], or0 = ORIENT[cur];
       for (var j=0; j<COURT.length; j++) {
         var o = COURT[j], st = STYLE[o.s];
@@ -701,7 +701,7 @@
           ctx.lineWidth = st.w; stroke3(c, o.pts); continue;
         }
         var src = or0[j] ? o.pts : o.pts.slice().reverse();
-        var pts = m > 0 ? src.map(function(P,k){ return lerp3(P, strand[k], smooth(m)); }) : src;
+        var pts = m > 0 ? src.map(function(P,k){ return lerp3(P, sink[k], smooth(m)); }) : src;
         var shown = head(pts, 1 - m*0.86);
         if (!shown) continue;
         ctx.strokeStyle = 'rgba('+INK+','+(st.a*(1-m)).toFixed(3)+')';
@@ -709,26 +709,21 @@
         stroke3(c, shown);
       }
 
-      // 3) 한 가닥 — 코트의 잉크가 모여 공의 궤적이 된다
-      var strandA = cl01(w/GATHER*1.35) * cl01((1-(w-UNFOLD)/(1-UNFOLD))*1.5);
-      if (strandA > 0.01) {
-        ctx.strokeStyle = 'rgba('+INK+','+(0.55*strandA).toFixed(3)+')';
-        ctx.lineWidth = 1.7;
-        stroke3(c, strand);
-        // 공이 지나온 쪽은 진하게 — 선이 공에 이끌려 그어진다
-        var drawn = strandTr === tr ? head(strand, bp) : strand;
+      // 3) 궤적 — 미리 그어져 있지 않다. 공이 지나간 만큼만 그어진다
+      if (ink > 0.01) {
+        var drawn = head(tr, bp);
         if (drawn) {
-          ctx.strokeStyle = 'rgba('+INK+','+(0.92*strandA).toFixed(3)+')';
+          ctx.strokeStyle = 'rgba('+INK+','+(0.88*ink).toFixed(3)+')';
           ctx.lineWidth = 2.3;
           stroke3(c, drawn);
         }
       }
 
-      // 4) 다음 장면의 코트 — 그 가닥에서 풀려나 그려진다
+      // 4) 다음 장면의 코트 — 공이 머금은 잉크에서 피어나 그려진다
       if (nxtPhase && w > UNFOLD) {
         var uw = (w-UNFOLD)/(1-UNFOLD);
         var rk2 = RANK[nxtPhase], or2 = ORIENT[nxtPhase];
-        var s2 = strand;
+        var s2 = sink;
         for (var j2=0; j2<COURT.length; j2++) {
           var o2 = COURT[j2], st2 = STYLE[o2.s];
           var m2 = cl01(uw*(1+0.62) - rk2[j2]*0.62);
@@ -748,7 +743,7 @@
       }
 
       ctx.strokeStyle = 'rgba('+INK+',1)';
-      ballAt(c, ball, 1);
+      ballAt(c, ball, 1, ink);
     }
 
     // ── 레일 ──
