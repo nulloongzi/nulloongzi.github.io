@@ -495,12 +495,27 @@
       }
       return HOPS[HOPS.length-1].b.slice();
     }
+    var ORDER_INIT = ['hero','serve','serve2','receive','toss','spike','land'];
     var TRAJ = {};
     Object.keys(SEG).forEach(function(k){
       var p = []; for (var i=0;i<NT;i++) p.push(bez(SEG[k], i/(NT-1)));
       TRAJ[k] = resample(p, NT);
     });
     (function(){ var p=[]; for(var i=0;i<NT;i++) p.push(bounce(i/(NT-1))); TRAJ.land = resample(p,NT); })();
+
+    // 공 회전: 진행 방향에 수직인 축으로, 굴러간 거리만큼. 국면이 바뀌어도 이어진다
+    var ARCLEN = {}, ARCBEFORE = {}, SPINAXIS = {};
+    (function(){
+      var acc = 0;
+      ORDER_INIT.forEach(function(k){
+        var t = TRAJ[k];
+        ARCBEFORE[k] = acc;
+        ARCLEN[k] = t ? arcOf(t) : 0;
+        acc += ARCLEN[k];
+        var ax = t ? cross(norm(sub(t[t.length-1], t[0])), [0,1,0]) : [0,0,0];
+        SPINAXIS[k] = Math.hypot(ax[0],ax[1],ax[2]) < 1e-3 ? [1,0,0] : norm(ax);
+      });
+    })();
 
     function at(tr, u) {
       var f = cl01(u)*(NT-1), i = Math.floor(f);
@@ -512,27 +527,27 @@
     var CAM = {
       hero:   { p:[13,7.5,17],     t:[0,0.6,0.5] },
       serve:  { p:[3.4,2.8,14.2],  t:[-0.2,2.8,0] },
-      serve2: { p:[7.0,3.4,-2.0],  t:[-1.2,2.2,-3.6] },
+      serve2: { p:[5.2,1.6,-9.5],  t:[-1.8,2.0,-3.4] },
       receive:{ p:[-9.0,3.6,-10.5],t:[0.4,1.8,-1.2] },
       toss:   { p:[-7.0,2.6,-4.6], t:[-0.8,2.8,-0.8] },
       spike:  { p:[-2.4,5.6,-5.4], t:[-1.3,0.7,3.6] },
-      land:   { p:[-0.2,3.4,7.6],  t:[-2.6,0.5,9.8] },
-      end:    { p:[-0.4,3.6,17],   t:[-3.2,0.9,11] }
+      land:   { p:[3.0,3.6,1.0],   t:[-2.2,0.4,7.8] },
+      end:    { p:[1.2,2.0,7.4],   t:[-3.0,0.5,10.8] }
     };
     // 시점(각도)은 그대로. 거리만 물려서 코트 구조가 프레임에 들어오게 한다
-    var DOLLY = { hero:1.0, serve:1.75, serve2:1.4, receive:1.3, toss:1.7, spike:1.2, land:1.5, end:1.05 };
+    var DOLLY = { hero:1.0, serve:1.75, serve2:1.0, receive:1.3, toss:1.7, spike:1.2, land:1.15, end:1.0 };
     Object.keys(CAM).forEach(function(k){
       var c = CAM[k], d = DOLLY[k] || 1;
       c.p = [c.t[0]+(c.p[0]-c.t[0])*d, c.t[1]+(c.p[1]-c.t[1])*d, c.t[2]+(c.p[2]-c.t[2])*d];
     });
-    var ORDER = ['hero','serve','serve2','receive','toss','spike','land'];
+    var ORDER = ORDER_INIT;
     var NEXT = { hero:'serve', serve:'serve2', serve2:'receive', receive:'toss', toss:'spike', spike:'land', land:'end' };
 
     // ── 전환 타임라인 ──
     var DWELL_D = { hero:0.52 };   // 국면별로 머무는 길이가 다르다
     var DWELL = 0.34;   // 장면에 머무는 기본 구간
     var GATHER = 0.34;  // 모여드는 구간 (전환 내부 비율)
-    var UNFOLD = 0.58;  // 풀려나기 시작하는 지점
+    var UNFOLD = 0.60;  // 풀려나기 시작하는 지점 — 공이 다 날아간 뒤
 
     // 각 선의 수렴 순번 — 공 출발점에 가까운 선부터 빨려든다
     function ranks(anchor) {
@@ -624,16 +639,72 @@
       return out.length > 1 ? out : null;
     }
 
-    function ballAt(c, P, alpha, swell) {
+    // ── 배구공 솔기: 18패널 = 6면 × 3장 ──
+    // 정육면체 여섯 면을 각각 세 줄로 나눠 구에 투영한다. 인접한 면은 줄 방향이 직교한다
+    // (실제 공에 '두 가지 패널 방향'이 생기는 이유가 이 6면 조립이다).
+    var BALL_R = 0.215;
+    // 샘플 확인용: ?ball=1.5 로 공을 키워 솔기를 크게 본다
+    try { var _b = new URLSearchParams(location.search).get('ball'); if (_b) BALL_R = parseFloat(_b) || BALL_R; } catch (e) {}
+    var SEAM = (function () {
+      var out = [], i, j, k;
+      function arcPts(a, b, n) {              // 정육면체 위 직선을 구로 정규화 — 대원호가 된다
+        var p = [];
+        for (var t=0; t<=n; t++) {
+          var u = t/n, q = [a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u];
+          p.push(norm(q));
+        }
+        return p;
+      }
+      // 12개 모서리 — 패널 묶음 여섯 덩어리의 경계
+      var C = [];
+      for (i=-1;i<=1;i+=2) for (j=-1;j<=1;j+=2) for (k=-1;k<=1;k+=2) C.push([i,j,k]);
+      C.forEach(function(a){
+        C.forEach(function(b){
+          var d = Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);
+          if (d === 2 && (a[0]<b[0] || a[1]<b[1] || a[2]<b[2])) out.push(arcPts(a,b,9));
+        });
+      });
+      // 각 면을 세 장으로 가르는 두 줄. 축마다 가르는 방향을 달리해 직교시킨다
+      var T = 1/3;
+      [-1,1].forEach(function(sx){ [-T,T].forEach(function(z){ out.push(arcPts([sx,-1,z],[sx,1,z],9)); }); });
+      [-1,1].forEach(function(sy){ [-T,T].forEach(function(x){ out.push(arcPts([x,sy,-1],[x,sy,1],9)); }); });
+      [-1,1].forEach(function(sz){ [-T,T].forEach(function(y){ out.push(arcPts([-1,y,sz],[1,y,sz],9)); }); });
+      return out;
+    })();
+
+    function rotor(axis, ang) {               // 로드리게스 — 축·각도를 행렬로
+      var a = norm(axis), ca = Math.cos(ang), sa = Math.sin(ang), t = 1-ca;
+      var x=a[0], y=a[1], z=a[2];
+      return [[t*x*x+ca, t*x*y-sa*z, t*x*z+sa*y],
+              [t*x*y+sa*z, t*y*y+ca, t*y*z-sa*x],
+              [t*x*z-sa*y, t*y*z+sa*x, t*z*z+ca]];
+    }
+    function apply(M, v){ return [M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],
+                                  M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],
+                                  M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]]; }
+
+    function ballAt(c, P, alpha, swell, M) {
       var v = toCam(c, P); if (v.z < NEAR) return;
-      var s = scr(v), r = cl(FPX*0.215/v.z, 2.6, 30) * (1 + 0.28*(swell||0));
+      var s = scr(v), r3 = BALL_R * (1 + 0.28*(swell||0));
+      var r = cl(FPX*r3/v.z, 2.6, 34*(BALL_R/0.215));   // 상한도 공 크기를 따라간다
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#fff8e1'; ctx.strokeStyle = 'rgba('+INK+',1)'; ctx.lineWidth = Math.max(1.1, r*0.13) * (1 + 0.5*(swell||0));
+      ctx.fillStyle = '#fff8e1'; ctx.strokeStyle = 'rgba('+INK+',1)';
+      ctx.lineWidth = Math.max(1.1, r*0.12) * (1 + 0.5*(swell||0));
       ctx.beginPath(); ctx.arc(s[0],s[1],r,0,Math.PI*2); ctx.fill(); ctx.stroke();
-      if (r > 5) {          // 배구공 이음선
-        ctx.lineWidth = Math.max(0.8, r*0.09); ctx.globalAlpha = alpha*0.5;
-        ctx.beginPath(); ctx.ellipse(s[0],s[1],r*0.42,r,0,0,Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(s[0],s[1],r,r*0.40,0,0,Math.PI*2); ctx.stroke();
+      if (r < 5 || !M) { ctx.globalAlpha = 1; return; }
+      // 솔기는 앞면만. 뒤로 돌아간 부분을 그리면 공이 유리구슬이 된다
+      ctx.lineWidth = Math.max(0.75, r*0.075); ctx.globalAlpha = alpha*0.85;
+      var eye = c.p;
+      for (var i=0;i<SEAM.length;i++) {
+        var run = null;
+        for (var k2=0;k2<SEAM[i].length;k2++) {
+          var n = apply(M, SEAM[i][k2]);
+          var wp = [P[0]+n[0]*r3, P[1]+n[1]*r3, P[2]+n[2]*r3];
+          var vis = dot(n, norm(sub(eye, wp))) > 0.06;
+          if (vis) { if (!run) run = []; run.push(wp); }
+          else if (run) { if (run.length>1) stroke3(c, run); run = null; }
+        }
+        if (run && run.length>1) stroke3(c, run);
       }
       ctx.globalAlpha = 1;
     }
@@ -671,7 +742,7 @@
       var c = basis(lerp3(A.p,Bk.p,camT), lerp3(A.t,Bk.t,camT));
 
       // 공: 전환 중 궤적을 탄다
-      var bp = smoother((w-0.10)/0.74);
+      var bp = smoother((w-0.06)/0.54);   // w=0.60 에 착지. 그 다음이 피어나는 시간
       var ball = at(tr, bp);
 
       // 잉크가 모이는 곳은 선이 아니라 공 한 점이다.
@@ -696,15 +767,11 @@
         var o = COURT[j], st = STYLE[o.s];
         var m = cl01((w/GATHER)*(1+0.62) - rk[j]*0.62);
         if (m >= 1) continue;
-        if (o.s === 'mesh') {                       // 그물코는 모프 없이 옅어지기만
-          ctx.strokeStyle = 'rgba('+INK+','+(st.a*(1-m)).toFixed(3)+')';
-          ctx.lineWidth = st.w; stroke3(c, o.pts); continue;
-        }
         var src = or0[j] ? o.pts : o.pts.slice().reverse();
         var pts = m > 0 ? src.map(function(P,k){ return lerp3(P, sink[k], smooth(m)); }) : src;
         var shown = head(pts, 1 - m*0.86);
         if (!shown) continue;
-        ctx.strokeStyle = 'rgba('+INK+','+(st.a*(1-m)).toFixed(3)+')';
+        ctx.strokeStyle = 'rgba('+INK+','+(st.a*Math.pow(1-m,0.5)).toFixed(3)+')';
         ctx.lineWidth = st.w;
         stroke3(c, shown);
       }
@@ -726,24 +793,21 @@
         var s2 = sink;
         for (var j2=0; j2<COURT.length; j2++) {
           var o2 = COURT[j2], st2 = STYLE[o2.s];
-          var m2 = cl01(uw*(1+0.62) - rk2[j2]*0.62);
+          var m2 = cl01(uw*1.95 - rk2[j2]*0.78);   // 넓게 스태거하되 uw≈0.92 에는 다 그려지게
           if (m2 <= 0) continue;
-          if (o2.s === 'mesh') {
-            ctx.strokeStyle = 'rgba('+INK+','+(st2.a*m2).toFixed(3)+')';
-            ctx.lineWidth = st2.w; stroke3(c, o2.pts); continue;
-          }
           var src2 = or2[j2] ? o2.pts : o2.pts.slice().reverse();
           var pts2 = m2 < 1 ? src2.map(function(P,k){ return lerp3(s2[k], P, smooth(m2)); }) : src2;
-          var shown2 = head(pts2, 0.14 + m2*0.86);
+          var shown2 = head(pts2, 0.10 + m2*0.90);
           if (!shown2) continue;
-          ctx.strokeStyle = 'rgba('+INK+','+(st2.a*m2).toFixed(3)+')';
+          ctx.strokeStyle = 'rgba('+INK+','+(st2.a*Math.pow(m2,0.5)).toFixed(3)+')';
           ctx.lineWidth = st2.w;
           stroke3(c, shown2);
         }
       }
 
       ctx.strokeStyle = 'rgba('+INK+',1)';
-      ballAt(c, ball, 1, ink);
+      var spinDist = (ARCBEFORE[cur]||0) + bp*(ARCLEN[cur]||0);
+      ballAt(c, ball, 1, ink, rotor(SPINAXIS[cur]||[1,0,0], spinDist/BALL_R*0.25));
     }
 
     // ── 레일 ──
