@@ -109,10 +109,10 @@
     section[data-phase="land"] { min-height:260vh; }
 
     .hero { text-align:left; }
-    .hero h1 { font-size:clamp(2.9rem,9.5vw,5.4rem); font-weight:800; color:var(--dark);
-               line-height:1.04; letter-spacing:-.035em; margin-bottom:18px; }
+    .hero h1 { font-size:clamp(2.6rem,8.4vw,4.8rem); font-weight:800; color:var(--dark);
+               line-height:1.06; letter-spacing:-.035em; margin-bottom:0; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
-    .hero .scrollhint { margin-top:44px; font-size:.84rem; font-weight:700; color:var(--brown);
+    .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
     .hero .scrollhint::after { content:"↓"; animation:bob 1.7s ease-in-out infinite; }
     @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
@@ -181,10 +181,8 @@
 <main>
   <section class="hero" data-phase="hero">
     <div class="col">
-      <h1 data-l="ko">누룽지의<br>랠리</h1>
-      <h1 data-l="en">Nulloongzi's<br>Rally</h1>
-      <p class="sub" data-l="ko">배구 동호회 지도 누룽지도를 만듭니다</p>
-      <p class="sub" data-l="en">I make Nulloongzi-do, a map of volleyball clubs in Korea</p>
+      <h1 data-l="ko">누룽지의<br>뿌리를 찾아서</h1>
+      <h1 data-l="en">Where Nulloongzi<br>Came From</h1>
       <div class="scrollhint" data-l="ko">스크롤하면 랠리가 시작됩니다</div>
       <div class="scrollhint" data-l="en">Scroll to start the rally</div>
     </div>
@@ -529,7 +527,7 @@
 
     // ── 카메라 키프레임 ──
     var CAM = {
-      hero:   { p:[13,7.5,17],     t:[0,0.6,0.5] },
+      hero:   { p:[7.5,6.4,20.5], t:[-1.2,0.8,3.0] },   // 공(서버 손)이 글 단 밖에 오도록
       serve:  { p:[3.4,2.8,14.2],  t:[-0.2,2.8,0] },
       serve2: { p:[5.2,1.6,-9.5],  t:[-1.8,2.0,-3.4] },
       receive:{ p:[-9.0,3.6,-10.5],t:[0.4,1.8,-1.2] },
@@ -1131,6 +1129,7 @@
     }, { threshold:0.08 }).observe(outro);
 
     // 샘플 확인용: 현재 국면·진행도 읽기
+    window.__cam = function(k, p, t){ if (p) CAM[k].p = p; if (t) CAM[k].t = t; draw(); };
     window.__state = function(){ return { phase:phase, pt:pt, dock:DOCK, tops:TOPS, snap:SNAP, ball:BALLXY }; };
     // 샘플 확인용: 특정 지점 고정
     window.__rally = function(ph, t){ phase = ph; pt = t; draw(); };
