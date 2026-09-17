@@ -25,17 +25,17 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <!-- 인터뷰 본문용 바탕체. 화면에서 읽히라고 만든 글꼴이라 이 용도에 맞다 -->
-  <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/fonts-archive/MaruBuri/subsets/MaruBuri-dynamic-subset.css">
+  <!-- 인터뷰 본문용 명조. OFL 이고 Google Fonts 라 전달이 안정적이다 -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&display=swap">
   <style>
     :root {
       --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --white:#fff;
       --text:#3e2f2a; --ink:#2f2320;
       --measure: 30em;
       /* 묻는 쪽은 산세리프, 말하는 쪽은 바탕체 */
-      --serif: "MaruBuri", "MaruBuri Regular", "Maru Buri", "Noto Serif KR",
-               "Apple SD Gothic Neo", "Nanum Myeongjo", serif;
+      --serif: "Noto Serif KR", "Nanum Myeongjo", "Apple SD Gothic Neo", serif;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     html { scroll-behavior:auto; }
@@ -369,8 +369,30 @@
       btn.textContent = l === 'ko' ? 'EN' : '한국어';
       try { localStorage.setItem('nz_lang', l); } catch (e) {} }
     apply(saved);
-    btn.addEventListener('click', function(){ apply(root.getAttribute('data-lang')==='ko'?'en':'ko'); });
+    btn.addEventListener('click', function(){
+      apply(root.getAttribute('data-lang')==='ko'?'en':'ko');
+      if (window.__fit) window.__fit();
+    });
   })();
+
+  // ── 히어로 제목: 한 줄로 글 단을 꽉 채우게 ──
+  // clamp 로 크기를 못박으면 글꼴마다 글자 폭이 달라 어떤 글꼴에선 넘치고
+  // 어떤 글꼴에선 작아진다. 실제 폭을 재서 맞춘다.
+  window.__fit = function () {
+    var col = document.querySelector('.hero .col'); if (!col) return;
+    var avail = col.clientWidth * 0.98;
+    var h = null, all = document.querySelectorAll('.hero h1');
+    for (var i = 0; i < all.length; i++) {
+      if (getComputedStyle(all[i]).display !== 'none') { h = all[i]; break; }
+    }
+    if (!h || !avail) return;
+    h.style.fontSize = '100px';
+    var w = h.scrollWidth;
+    h.style.fontSize = (w ? Math.min(78, Math.max(20, 100 * avail / w)) : 40).toFixed(1) + 'px';
+  };
+  addEventListener('resize', function(){ window.__fit(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ window.__fit(); });
+  window.__fit();
 
   // ── 연락처 ──
   var CONTACT = [
