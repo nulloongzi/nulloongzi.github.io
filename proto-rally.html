@@ -119,11 +119,33 @@
     .hero .col { max-width:min(46em,100%); }
     .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:800; color:var(--dark);
                line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
-    /* 강조어는 키우고 노란 밑칠. 노란 글자는 크림 배경에서 대비가 1.5:1 이라 못 쓴다 */
-    .hero h1 em { font-style:normal; font-size:1.24em;
-                  background:linear-gradient(transparent 58%, var(--yellow) 58%); }
-    /* 대안: 진한 금색 글자 (html[data-hl="gold"]) */
-    html[data-hl="gold"] .hero h1 em { background:none; color:#b07a00; }
+    /* 강조 기법 비교판. html[data-hl] 로 전환한다.
+       노란 "글자"는 못 쓴다 — #fac710 을 크림(#fff8e1) 위에 올리면 대비가 1.5:1. */
+    .hero h1 em { font-style:normal; font-size:1.3em; }                       /* 기본: 크기만 */
+    /* 1 형광펜 */
+    html[data-hl="1"] .hero h1 em { font-size:1.24em;
+        background:linear-gradient(transparent 58%, var(--yellow) 58%); }
+    /* 2 굵기 대비 — 나머지를 가늘게 */
+    html[data-hl="2"] .hero h1 { font-weight:300; }
+    html[data-hl="2"] .hero h1 em { font-weight:900; font-size:1.24em; }
+    /* 3 크기만 (색 없음) */
+    html[data-hl="3"] .hero h1 em { font-size:1.36em; }
+    /* 4 가는 노란 밑줄 */
+    html[data-hl="4"] .hero h1 em { font-size:1.24em;
+        background:linear-gradient(var(--yellow),var(--yellow)) 0 93%/100% .07em no-repeat; }
+    /* 5 노란 칩 */
+    html[data-hl="5"] .hero h1 em { font-size:1.08em; background:var(--yellow);
+        padding:.02em .14em; border-radius:.08em; }
+    /* 6 서체 대비 — 강조어만 명조 */
+    html[data-hl="6"] .hero h1 em { font-family:var(--serif); font-weight:700; font-size:1.34em; }
+    /* 7 농도 대비 — 나머지를 흐리게 */
+    html[data-hl="7"] .hero h1 { color:rgba(62,47,42,.34); }
+    html[data-hl="7"] .hero h1 em { color:var(--dark); font-size:1.24em; }
+    /* 8 노란 점 */
+    html[data-hl="8"] .hero h1 em { font-size:1.26em; }
+    html[data-hl="8"] .hero h1 em::after { content:""; display:inline-block;
+        width:.13em; height:.13em; border-radius:50%; background:var(--yellow);
+        vertical-align:.62em; margin-left:.05em; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
