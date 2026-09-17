@@ -117,11 +117,11 @@
     .hero .scrollhint::after { content:"↓"; animation:bob 1.7s ease-in-out infinite; }
     @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
 
-    .phase { font-size:.74rem; font-weight:800; letter-spacing:.2em; color:var(--brown);
-             text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-    .phase::before { content:""; width:28px; height:3px; background:var(--yellow); border-radius:2px; }
     h2 { font-size:clamp(1.9rem,5.2vw,2.9rem); font-weight:800; color:var(--dark);
-         line-height:1.18; letter-spacing:-.03em; margin-bottom:38px; }
+         line-height:1.18; letter-spacing:-.03em; margin-bottom:30px; }
+    /* 국면 이름 하나만 남겼으니 표식은 선으로 준다 */
+    h2::before { content:""; display:block; width:30px; height:3px; border-radius:2px;
+                 background:var(--yellow); margin-bottom:16px; }
 
     .q { font-weight:700; color:var(--brown); font-size:1.02rem; line-height:1.6;
          margin-bottom:14px; text-indent:-1.1em; padding-left:1.1em; }
@@ -183,8 +183,8 @@
     <div class="col">
       <h1 data-l="ko">누룽지의<br>랠리</h1>
       <h1 data-l="en">Nulloongzi's<br>Rally</h1>
-      <p class="sub" data-l="ko">서브부터 꽂힘까지 — 인터뷰로 읽는 누룽지</p>
-      <p class="sub" data-l="en">From the serve to the floor — Nulloongzi, in his own words</p>
+      <p class="sub" data-l="ko">배구 동호회 지도 누룽지도를 만듭니다</p>
+      <p class="sub" data-l="en">I make Nulloongzi-do, a map of volleyball clubs in Korea</p>
       <div class="scrollhint" data-l="ko">스크롤하면 랠리가 시작됩니다</div>
       <div class="scrollhint" data-l="en">Scroll to start the rally</div>
     </div>
@@ -192,19 +192,18 @@
 
   <section data-phase="serve" data-rail="Serve">
     <div class="col">
-      <div class="phase">Serve</div>
-      <h2 data-l="ko">서브 — 시작</h2>
-      <h2 data-l="en">Serve — the start</h2>
+      <h2 data-l="ko">서브</h2>
+      <h2 data-l="en">Serve</h2>
       <div class="q" data-l="ko">배구, 어떻게 시작했어요?</div>
       <div class="q" data-l="en">How did you get into volleyball?</div>
       <div class="a" data-l="ko">
         <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠. 코트도 없어서 야외 농구장에 네트를 치고 친구들끼리 야매로 했어요.</p>
+        <p>만화처럼은 아니어도, 친구들이랑 배구를 할 수 있다는 것 자체가 좋았어요.</p>
       </div>
       <div class="a" data-l="en">
         <p>A PE assignment in my last year of high school. That's when I first watched Haikyuu, and I thought — I want to do that. We had no court, so we strung a net across an outdoor basketball court and played our own rough version.</p>
+        <p>It was nothing like the anime. But just getting to play with my friends was enough.</p>
       </div>
-      <blockquote data-l="ko">만화처럼은 아니어도, <em>친구들이랑 배구를 할 수 있다는 것 자체</em>가 좋았어요.</blockquote>
-      <blockquote data-l="en">It was nothing like the anime. But <em>just getting to play with my friends</em> was enough.</blockquote>
     </div>
   </section>
 
@@ -225,27 +224,25 @@
 
   <section data-phase="receive" data-rail="Receive">
     <div class="col">
-      <div class="phase">Receive</div>
-      <h2 data-l="ko">리시브 — 받은 것</h2>
-      <h2 data-l="en">Receive — what I was given</h2>
+      <h2 data-l="ko">리시브</h2>
+      <h2 data-l="en">Receive</h2>
       <div class="q" data-l="ko">이 판에서 받은 것 중 제일 기억에 남는 건?</div>
       <div class="q" data-l="en">What's the most memorable thing this scene has given you?</div>
       <div class="a" data-l="ko">
         <p>새로운 사람 만나는 게 즐겁지 않던 시절이 있었어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
+        <p>제가 받은 환대는 플레이가 아니라 밥상에서 왔어요.</p>
       </div>
       <div class="a" data-l="en">
         <p>There was a time when meeting new people wasn't fun for me. I ended up at a club dinner after practice once, and eating together afterwards turned out to be the best part. I did that every week for three years. Play, then eat.</p>
+        <p>The welcome I got didn't come from the plays. It came from the dinner table.</p>
       </div>
-      <blockquote data-l="ko">제가 받은 환대는 플레이가 아니라 <em>밥상에서</em> 왔어요.</blockquote>
-      <blockquote data-l="en">The welcome I got didn't come from the plays. It came from <em>the dinner table</em>.</blockquote>
     </div>
   </section>
 
   <section data-phase="toss" data-rail="Toss">
     <div class="col">
-      <div class="phase">Toss</div>
-      <h2 data-l="ko">토스 — 올려주는 것</h2>
-      <h2 data-l="en">Toss — setting others up</h2>
+      <h2 data-l="ko">토스</h2>
+      <h2 data-l="en">Toss</h2>
       <div class="q" data-l="ko">그런데 왜 지도까지 만들었어요?</div>
       <div class="q" data-l="en">So why go as far as building a map?</div>
       <div class="a" data-l="ko">
@@ -256,16 +253,13 @@
         <p>I got into 6-a-side by chance, through an older guy at a club. Following him around and meeting people, the invitations kept coming. Before long I was the one getting DMs asking "where can I play?" After answering them one by one — oh. I should make a map.</p>
         <p>The best part is when the person I introduced says "that was great, thanks," and the club says "a good one came by."</p>
       </div>
-      <blockquote data-l="ko">연결이 성사된 걸 <em>양쪽에서 확인하는 순간.</em></blockquote>
-      <blockquote data-l="en">The moment a connection is confirmed <em>from both sides.</em></blockquote>
     </div>
   </section>
 
   <section data-phase="spike" data-rail="Spike">
     <div class="col">
-      <div class="phase">Spike</div>
-      <h2 data-l="ko">스파이크 — 하고 싶은 말</h2>
-      <h2 data-l="en">Spike — what I want to say</h2>
+      <h2 data-l="ko">스파이크</h2>
+      <h2 data-l="en">Spike</h2>
       <div class="q" data-l="ko">한국 배구판에 하고 싶은 말은?</div>
       <div class="q" data-l="en">What would you say to the volleyball scene in Korea?</div>
       <div class="a" data-l="ko">
@@ -274,8 +268,8 @@
       <div class="a" data-l="en">
         <p>It's a bit closed off. The information lives inside members-only forums, so if you're not in, you can't even start. With futsal or basketball you just show up near your place and play.</p>
       </div>
-      <blockquote data-l="ko">배구도 그랬으면 좋겠어요.<br><em>언제 어디서든.</em></blockquote>
-      <blockquote data-l="en">I want volleyball to be like that.<br><em>Anywhere, anytime.</em></blockquote>
+      <blockquote data-l="ko">배구도 그랬으면 좋겠어요<br><em>언제 어디서든</em></blockquote>
+      <blockquote data-l="en">I want volleyball to be like that<br><em>anywhere, anytime</em></blockquote>
 
       <div class="q" data-l="ko">그래서 다음으로 준비하는 게?</div>
       <div class="q" data-l="en">So what are you working on next?</div>
@@ -294,12 +288,12 @@
       <div class="q" data-l="en">Anything you'd ask of someone who scrolled this far?</div>
       <div class="a" data-l="ko">
         <p>배구를 더 사랑해줬으면 좋겠어요.</p>
+        <p>그리고 그냥 누룽지가 궁금했던 거라면 — 그걸로 충분해요.</p>
       </div>
       <div class="a" data-l="en">
         <p>I hope you come to love volleyball a little more.</p>
+        <p>And if you were just curious about Nulloongzi — that's enough.</p>
       </div>
-      <blockquote data-l="ko">그리고 그냥 누룽지가 궁금했던 거라면 — <em>그걸로 충분해요.</em></blockquote>
-      <blockquote data-l="en">And if you were just curious about Nulloongzi — <em>that's enough.</em></blockquote>
       <div class="links" style="margin-top:38px">
         <a class="btn primary" href="https://do.nulloongzi.com/"><span data-l="ko">누룽지도 열어보기</span><span data-l="en">Open the map</span></a>
         <a class="btn ghost" href="#projects"><span data-l="ko">만드는 것들 ↓</span><span data-l="en">What I build ↓</span></a>
