@@ -28,7 +28,7 @@
   <!-- 인터뷰 본문용 명조. OFL 이고 Google Fonts 라 전달이 안정적이다 -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap">
   <style>
     :root {
       --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --white:#fff;
@@ -119,6 +119,11 @@
     .hero .col { max-width:min(46em,100%); }
     .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:800; color:var(--dark);
                line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
+    /* 강조어는 키우고 노란 밑칠. 노란 글자는 크림 배경에서 대비가 1.5:1 이라 못 쓴다 */
+    .hero h1 em { font-style:normal; font-size:1.24em;
+                  background:linear-gradient(transparent 58%, var(--yellow) 58%); }
+    /* 대안: 진한 금색 글자 (html[data-hl="gold"]) */
+    html[data-hl="gold"] .hero h1 em { background:none; color:#b07a00; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
@@ -136,7 +141,7 @@
          letter-spacing:.01em; }
     .q::before { content:"Q."; color:var(--dark); margin-right:.35em;
                  background:linear-gradient(transparent 58%, var(--yellow) 58%); }
-    .a p { margin-bottom:18px; font-family:var(--serif); font-size:1.06rem;
+    .a p { margin-bottom:18px; font-family:var(--serif); font-size:1.06rem; font-weight:500;
            line-height:1.92; letter-spacing:.002em; }
     .a p:last-child { margin-bottom:0; }
     .a + .q, blockquote + .q { margin-top:52px; }
@@ -192,8 +197,8 @@
 <main>
   <section class="hero" data-phase="hero">
     <div class="col">
-      <h1 data-l="ko">누룽지의 뿌리를 찾아서</h1>
-      <h1 data-l="en">Where Nulloongzi Came From</h1>
+      <h1 data-l="ko"><em>배구</em>플 땐 <em>누룽지</em></h1>
+      <h1 data-l="en">Craving <em>volleyball</em>? <em>Nulloongzi</em></h1>
       <div class="scrollhint" data-l="ko">스크롤하면 랠리가 시작됩니다</div>
       <div class="scrollhint" data-l="en">Scroll to start the rally</div>
     </div>
