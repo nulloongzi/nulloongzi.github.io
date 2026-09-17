@@ -693,6 +693,7 @@
     // ── 배구공 솔기: 18패널 = 6면 × 3장 ──
     // 정육면체 여섯 면을 각각 세 줄로 나눠 구에 투영한다. 인접한 면은 줄 방향이 직교한다
     // (실제 공에 '두 가지 패널 방향'이 생기는 이유가 이 6면 조립이다).
+    var BALLXY = [0,0,0];
     var BALL_R = 0.215;
     // 샘플 확인용: ?ball=1.5 로 공을 키워 솔기를 크게 본다
     try { var _b = new URLSearchParams(location.search).get('ball'); if (_b) BALL_R = parseFloat(_b) || BALL_R; } catch (e) {}
@@ -736,14 +737,50 @@
 
     function ballAt(c, P, alpha, swell, M) {
       var v = toCam(c, P); if (v.z < NEAR) return;
-      var s = scr(v), r3 = BALL_R * (1 + 0.28*(swell||0));
-      var r = cl(FPX*r3/v.z, 2.6, 34*(BALL_R/0.215));   // 상한도 공 크기를 따라간다
+      var r3 = BALL_R * (1 + 0.28*(swell||0));
+      // 윤곽을 '중심을 투영한 자리에 원'으로 그리면 안 된다. 구의 실루엣은 화면
+      // 중앙에서 벗어날수록 그 원보다 크고 바깥으로 밀린 타원이다. 솔기는 3D 점을
+      // 그대로 투영하니 정확한데 윤곽만 근사라서, 둘이 어긋나 테두리가 두 겹으로 보였다.
+      // 실제 접선원(림)을 3D 에서 구해 투영한다.
+      var toC = sub(P, c.p), d = Math.hypot(toC[0],toC[1],toC[2]);
+      if (d <= r3*1.05) return;
+      var n = mul(toC, 1/d);
+      var cc = sub(P, mul(n, r3*r3/d));                       // 림 원의 중심
+      var rr = r3 * Math.sqrt(Math.max(0, 1 - r3*r3/(d*d)));  // 림 원의 반지름
+      var e1 = norm(cross(n, Math.abs(n[1]) > 0.9 ? [1,0,0] : [0,1,0]));
+      var e2 = cross(n, e1);
+      var rim = [], q, ang, minx=1e9, maxx=-1e9, miny=1e9, maxy=-1e9;
+      for (q=0; q<44; q++) {
+        ang = q/44*Math.PI*2;
+        var wp0 = [cc[0]+ (e1[0]*Math.cos(ang)+e2[0]*Math.sin(ang))*rr,
+                   cc[1]+ (e1[1]*Math.cos(ang)+e2[1]*Math.sin(ang))*rr,
+                   cc[2]+ (e1[2]*Math.cos(ang)+e2[2]*Math.sin(ang))*rr];
+        var vv = toCam(c, wp0); if (vv.z < NEAR) return;
+        var sp = scr(vv); rim.push(sp);
+        if (sp[0]<minx) minx=sp[0]; if (sp[0]>maxx) maxx=sp[0];
+        if (sp[1]<miny) miny=sp[1]; if (sp[1]>maxy) maxy=sp[1];
+      }
+      var r = Math.max(maxx-minx, maxy-miny) / 2;             // 화면상 크기
+      var s = [(minx+maxx)/2, (miny+maxy)/2];
+      BALLXY = [s[0], s[1], r];                                // 샘플 확인용
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#fff8e1'; ctx.strokeStyle = 'rgba('+INK+',1)';
       ctx.lineWidth = Math.max(1.1, r*0.12) * (1 + 0.5*(swell||0));
-      ctx.beginPath(); ctx.arc(s[0],s[1],r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      if (r < 2.6) { ctx.arc(s[0], s[1], 2.6, 0, Math.PI*2); }   // 너무 멀면 점으로
+      else {
+        ctx.moveTo(rim[0][0], rim[0][1]);
+        for (q=1; q<rim.length; q++) ctx.lineTo(rim[q][0], rim[q][1]);
+        ctx.closePath();
+      }
+      ctx.fill(); ctx.stroke();
       if (r < 5 || !M) { ctx.globalAlpha = 1; return; }
-      // 솔기는 앞면만. 뒤로 돌아간 부분을 그리면 공이 유리구슬이 된다
+      // 솔기는 앞면만. 뒤로 돌아간 부분을 그리면 공이 유리구슬이 된다.
+      // 림에서 조금 떨어진 곳에서 끊는다. 가장자리는 투영이 심하게 압축돼서 여러 대원이
+      // 윤곽선을 따라 겹쳐 쌓이고, 그게 테두리가 두 겹으로 보이던 원인이다.
+      // 각도로는 감이 안 온다 — 림에서 10° 안쪽이 화면에선 반지름의 1.5% 다.
+      // LIMB=0.45 는 반지름의 89% 지점, 즉 가장자리 11% 를 비운다.
+      var LIMB = 0.45;
       ctx.lineWidth = Math.max(0.75, r*0.075); ctx.globalAlpha = alpha*0.85;
       var eye = c.p;
       for (var i=0;i<SEAM.length;i++) {
@@ -751,8 +788,7 @@
         for (var k2=0;k2<SEAM[i].length;k2++) {
           var n = apply(M, SEAM[i][k2]);
           var wp = [P[0]+n[0]*r3, P[1]+n[1]*r3, P[2]+n[2]*r3];
-          var vis = dot(n, norm(sub(eye, wp))) > 0.06;
-          if (vis) { if (!run) run = []; run.push(wp); }
+          if (dot(n, norm(sub(eye, wp))) > LIMB) { if (!run) run = []; run.push(wp); }
           else if (run) { if (run.length>1) stroke3(c, run); run = null; }
         }
         if (run && run.length>1) stroke3(c, run);
@@ -1101,7 +1137,7 @@
     }, { threshold:0.08 }).observe(outro);
 
     // 샘플 확인용: 현재 국면·진행도 읽기
-    window.__state = function(){ return { phase:phase, pt:pt, dock:DOCK, tops:TOPS, snap:SNAP }; };
+    window.__state = function(){ return { phase:phase, pt:pt, dock:DOCK, tops:TOPS, snap:SNAP, ball:BALLXY }; };
     // 샘플 확인용: 특정 지점 고정
     window.__rally = function(ph, t){ phase = ph; pt = t; draw(); };
   })();
