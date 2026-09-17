@@ -25,11 +25,17 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <!-- 인터뷰 본문용 바탕체. 화면에서 읽히라고 만든 글꼴이라 이 용도에 맞다 -->
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/fonts-archive/MaruBuri/subsets/MaruBuri-dynamic-subset.css">
   <style>
     :root {
       --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --white:#fff;
       --text:#3e2f2a; --ink:#2f2320;
       --measure: 30em;
+      /* 묻는 쪽은 산세리프, 말하는 쪽은 바탕체 */
+      --serif: "MaruBuri", "MaruBuri Regular", "Maru Buri", "Noto Serif KR",
+               "Apple SD Gothic Neo", "Nanum Myeongjo", serif;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     html { scroll-behavior:auto; }
@@ -98,8 +104,8 @@
       section[data-phase] { padding-left:max(22px,6vw); padding-right:max(22px,6vw); }
       section[data-lay="top"]    { justify-content:flex-start; padding-top:11vh;  padding-bottom:33vh; }
       section[data-lay="bottom"] { justify-content:flex-start; padding-top:35vh;  padding-bottom:9vh; }
-      section[data-phase] .q     { font-size:.97rem; }
-      section[data-phase] .a p   { font-size:.96rem; line-height:1.72; margin-bottom:12px; }
+      section[data-phase] .q     { font-size:.88rem; }
+      section[data-phase] .a p   { font-size:1rem; line-height:1.8; margin-bottom:14px; }
       section[data-phase] h2     { margin-bottom:24px; }
       section[data-phase] blockquote { margin-top:24px; font-size:clamp(1.24rem,4.6vw,1.6rem); }
       section[data-phase] .a + .q, section[data-phase] blockquote + .q { margin-top:30px; }
@@ -125,17 +131,20 @@
     h2::before { content:""; display:block; width:30px; height:3px; border-radius:2px;
                  background:var(--yellow); margin-bottom:16px; }
 
-    .q { font-weight:700; color:var(--brown); font-size:1.02rem; line-height:1.6;
-         margin-bottom:14px; text-indent:-1.1em; padding-left:1.1em; }
+    .q { font-weight:700; color:var(--brown); font-size:.92rem; line-height:1.6;
+         margin-bottom:16px; text-indent:-1.1em; padding-left:1.1em;
+         letter-spacing:.01em; }
     .q::before { content:"Q."; color:var(--dark); margin-right:.35em;
                  background:linear-gradient(transparent 58%, var(--yellow) 58%); }
-    .a p { margin-bottom:16px; }
+    .a p { margin-bottom:18px; font-family:var(--serif); font-size:1.06rem;
+           line-height:1.92; letter-spacing:.002em; }
     .a p:last-child { margin-bottom:0; }
     .a + .q, blockquote + .q { margin-top:52px; }
 
     /* 인용: 이 글에서 제일 좋은 문장을 크게 */
-    blockquote { margin:34px 0 0; font-size:clamp(1.42rem,3.7vw,2.05rem); font-weight:800;
-                 color:var(--dark); line-height:1.38; letter-spacing:-.028em; }
+    blockquote { margin:34px 0 0; font-family:var(--serif);
+                 font-size:clamp(1.34rem,3.5vw,1.95rem); font-weight:700;
+                 color:var(--dark); line-height:1.5; letter-spacing:-.012em; }
     blockquote em { font-style:normal; background:linear-gradient(transparent 62%, var(--yellow) 62%); }
 
     /* ── 후반부 ── */
@@ -612,7 +621,21 @@
 
     // ── 렌더 ──
     var W=0, H=0, DPR=1, CX=0, CY=0, FPX=0, WIDE=false;
-    var GUTTER = 0.34;   // 좁은 화면에서 그림에게 떼어주는 띠 (CSS padding 과 맞춘다)
+    var GUTTER = 0.34;   // 좁은 화면에서 그림에게 떼어주는 띠의 기본값 (CSS padding 과 맞춘다)
+    var BAND0 = 0, BAND1 = 0;
+    // 국면 i 의 그림 띠를 화면 좌표로. 글 블록을 침범하지 않는 선에서 최대한 넓게 잡는다
+    function bandAt(i) {
+      var el = COLS[i], lay = (layOf(ORDER[i]) || LAY.hero).text;
+      var pad = H*0.045, minH = H*0.22;
+      if (!el) return lay === 'top' ? [H*(1-GUTTER), H] : [0, H*GUTTER];
+      var r = el.getBoundingClientRect();
+      if (lay === 'top') {
+        var y0 = Math.max(H*(1-GUTTER), r.bottom + pad);
+        return [Math.min(y0, H - minH), H];
+      }
+      var y1 = Math.min(H*GUTTER, r.top - pad);
+      return [0, Math.max(y1, minH)];
+    }
     function resize() {
       DPR = Math.min(devicePixelRatio||1, 2);
       W = innerWidth; H = innerHeight;
@@ -836,7 +859,14 @@
       var topness = ta + (tb - ta) * camT;
       CX = W * (la.cx[ix] + (lb.cx[ix] - la.cx[ix]) * camT);
       CY = H * (la.cy[ix] + (lb.cy[ix] - la.cy[ix]) * camT);
-      if (!WIDE) CY = H * ((1 - GUTTER) * topness + GUTTER * 0.52);   // 그림 띠 한가운데로
+      if (!WIDE) {
+        // 그림 띠는 고정 34% 가 아니라 글 블록이 끝나는 자리에서 시작한다.
+        // 고정값으로 두면 글이 길거나 글꼴이 바뀔 때 그대로 겹쳐버린다(스파이크가 그랬다).
+        var bd = bandAt(i0), bd2 = nxtPhase ? bandAt(i0+1) : bd;
+        BAND0 = bd[0] + (bd2[0]-bd[0])*camT;
+        BAND1 = bd[1] + (bd2[1]-bd[1])*camT;
+        CY = (BAND0 + BAND1) * 0.5;
+      }
 
       // 공: 전환 중 궤적을 탄다
       var fl = FLY_D[cur] || FLY;
@@ -979,12 +1009,9 @@
           gx.addColorStop(0, 'rgba(0,0,0,0.97)'); gx.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = gx; ctx.fillRect(solid, 0, W*0.56 - solid, H);
         } else {
-          // 좁은 화면은 그림 띠 바깥을 전부 지운다. 글이 앉는 쪽 반대편이 띠다.
-          var keep = GUTTER;                       // 띠 높이 비율
+          // 좁은 화면은 그림 띠 바깥을 전부 지운다. 띠는 글 블록이 비켜준 자리다.
           var edge = H * 0.07;                     // 경계는 부드럽게
-          // 글이 위(topness=1) → 띠는 아래 / 글이 아래(topness=0) → 띠는 위
-          var y0 = H * (1 - keep) * topness;       // 띠 시작
-          var y1 = y0 + H * keep;                  // 띠 끝
+          var y0 = BAND0, y1 = BAND1;
           ctx.fillStyle = 'rgba(0,0,0,0.97)';
           if (y0 > 0) ctx.fillRect(0, 0, W, Math.max(0, y0 - edge));
           if (y1 < H) ctx.fillRect(0, Math.min(H, y1 + edge), W, H);
@@ -1000,6 +1027,7 @@
     }
 
     // ── 레일 ──
+    var COLS = secs.map(function(x){ return x.querySelector('.col'); });
     var curRail = '', dots = [];
     secs.forEach(function(s){
       s.id = s.getAttribute('data-phase');
@@ -1132,7 +1160,7 @@
 
     // 샘플 확인용: 현재 국면·진행도 읽기
     window.__cam = function(k, p, t){ if (p) CAM[k].p = p; if (t) CAM[k].t = t; draw(); };
-    window.__state = function(){ return { phase:phase, pt:pt, dock:DOCK, tops:TOPS, snap:SNAP, ball:BALLXY }; };
+    window.__state = function(){ return { phase:phase, pt:pt, dock:DOCK, tops:TOPS, snap:SNAP, ball:BALLXY, band:[BAND0,BAND1] }; };
     // 샘플 확인용: 특정 지점 고정
     window.__rally = function(ph, t){ phase = ph; pt = t; draw(); };
   })();
