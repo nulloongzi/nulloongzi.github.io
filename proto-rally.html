@@ -109,8 +109,10 @@
     section[data-phase="land"] { min-height:260vh; }
 
     .hero { text-align:left; }
-    .hero h1 { font-size:clamp(2.6rem,8.4vw,4.8rem); font-weight:800; color:var(--dark);
-               line-height:1.06; letter-spacing:-.035em; margin-bottom:0; }
+    /* 제목은 한 줄로 선다. 상한은 글 단 폭(46em)에 맞춰 잡았다 */
+    .hero .col { max-width:min(46em,100%); }
+    .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:800; color:var(--dark);
+               line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
@@ -181,8 +183,8 @@
 <main>
   <section class="hero" data-phase="hero">
     <div class="col">
-      <h1 data-l="ko">누룽지의<br>뿌리를 찾아서</h1>
-      <h1 data-l="en">Where Nulloongzi<br>Came From</h1>
+      <h1 data-l="ko">누룽지의 뿌리를 찾아서</h1>
+      <h1 data-l="en">Where Nulloongzi Came From</h1>
       <div class="scrollhint" data-l="ko">스크롤하면 랠리가 시작됩니다</div>
       <div class="scrollhint" data-l="en">Scroll to start the rally</div>
     </div>
