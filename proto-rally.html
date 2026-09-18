@@ -225,15 +225,15 @@
       <div class="q" data-l="en">How did you get into volleyball?</div>
       <div class="a" data-l="ko">
         <p>고3 수행평가였어요. 그때 하이큐를 처음 봤고, 나도 저렇게 하고 싶다고 생각했죠.</p>
-        <p>코트가 있었겠어요. 야외 농구장에 네트만 쳐놓고 친구들끼리 야매로 했어요. 바닥이 플라스틱 합판이라 넘어지면 무릎이 다 갈렸어요.</p>
-        <p>만화처럼은 안 됐죠. 그래도 친구들이랑 배구한다는 게 좋았어요.</p>
-        <p>제대로 시작한 건 군대 갔다 와서예요.</p>
+        <p>코트가 있었겠어요. 야외 농구장에 네트만 쳐놓고 야매로 했어요. 플라스틱 합판 바닥이라 넘어지면 무릎이 다 갈렸고요. 만화처럼은 안 됐지만 친구들이랑 하는 게 좋았어요.</p>
+        <p>그렇게 제대로 해보지도 못한 채 군대에 갔어요. 갔다 와서야 비로소 제대로 시작할 수 있었고요.</p>
+        <p>전혀 모르는 동네에서, 생전 처음 보는 사람들이랑.</p>
       </div>
       <div class="a" data-l="en">
         <p>A PE assignment in my last year of high school. That's when I first watched Haikyuu, and I thought — I want to do that.</p>
-        <p>A court? Not a chance. We strung a net across an outdoor basketball court and played our own rough version. The floor was plastic board, so going down for a ball took the skin off your knees.</p>
-        <p>Nothing like the anime. But we got to play, and that was enough.</p>
-        <p>I didn't really start until after the army.</p>
+        <p>A court? Not a chance. We strung a net across an outdoor basketball court and played our own rough version. The floor was plastic board, so going down for a ball took the skin off your knees. Nothing like the anime, but playing with friends was enough.</p>
+        <p>So I never really got to play, and then I went into the army. It wasn't until I came back that I could actually start.</p>
+        <p>In a neighborhood I didn't know, with people I'd never met.</p>
       </div>
     </div>
   </section>
@@ -1119,7 +1119,30 @@
     var outro = document.querySelector('.outro');
     var TOPS = [], SNAP = [], DOCK = 0;
     function absTop(el){ return Math.round(el.getBoundingClientRect().top + scrollY); }
+    // 좁은 화면의 여백은 CSS 에 35vh / 11vh 로 박혀 있었다. 글이 길어지면
+    // 그 여백째로 화면 밖으로 밀려나 마지막 문단이 접힘 아래로 숨는다.
+    // 글이 먼저고 그림 띠는 남는 자리를 받는다 — 대신 띠의 최소치는 지킨다.
+    function fitPads() {
+      var narrow = innerWidth < 900, H2 = innerHeight;
+      secs.forEach(function(s, i){
+        var el = COLS[i]; if (!el) return;
+        if (!narrow) { s.style.paddingTop = ''; s.style.paddingBottom = ''; return; }
+        var ch = el.offsetHeight, lay = layOf(s.getAttribute('data-phase')).text;
+        var keep = H2 * 0.14;                       // 그림에게 최소한 남겨두는 띠
+        if (lay === 'bottom') {
+          var pb = H2 * 0.09;
+          var pt = Math.max(keep, Math.min(H2 * 0.35, H2 - ch - pb));
+          s.style.paddingTop = pt.toFixed(1) + 'px';
+          s.style.paddingBottom = pb.toFixed(1) + 'px';
+        } else {
+          var pt2 = Math.min(H2 * 0.11, Math.max(H2 * 0.05, H2 - ch - keep));
+          s.style.paddingTop = pt2.toFixed(1) + 'px';
+          s.style.paddingBottom = Math.max(keep, H2 - ch - pt2).toFixed(1) + 'px';
+        }
+      });
+    }
     function measure() {
+      fitPads();
       TOPS = secs.map(absTop);
       var land = document.querySelector('section[data-phase="land"]');
       SNAP = TOPS.slice();
