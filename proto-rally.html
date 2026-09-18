@@ -100,6 +100,12 @@
     /* 국면마다 글과 그림이 자리를 바꾼다 — 공이 어디로 가는지에 맞춰서 */
     section[data-lay="top"]    { justify-content:flex-start; padding-top:13vh; }
     section[data-lay="bottom"] { justify-content:flex-end;   padding-bottom:13vh; }
+    /* 넓은 화면에선 글이 왼쪽 단에, 그림이 오른쪽에 따로 앉는다. 위/아래 구분은
+       좁은 화면에서 띠를 어느 쪽에 떼어줄지를 정하는 값이라, 여기서 그대로 쓰면
+       글 단의 반대쪽 절반이 늘 빈 채로 남는다. 넓은 화면은 가운데로 되돌린다. */
+    @media (min-width:900px){
+      section[data-phase][data-lay] { justify-content:center; padding-top:22vh; padding-bottom:22vh; }
+    }
     /* 좁은 화면: 글과 그림이 겹칠 자리가 없다. 그림 몫을 띠로 아예 떼어둔다.
        data-lay 는 '글이 앉는 쪽' — 그림 띠는 그 반대쪽에 생긴다. */
     @media (max-width:899px){
@@ -156,7 +162,8 @@
     blockquote { margin:34px 0 0; font-family:var(--serif);
                  font-size:clamp(1.34rem,3.5vw,1.95rem); font-weight:700;
                  color:var(--dark); line-height:1.5; letter-spacing:-.012em; }
-    blockquote em { font-style:normal; background:linear-gradient(transparent 62%, var(--yellow) 62%); }
+    /* 히어로 제목과 같은 방식 — 형광펜을 걷고 색으로만 짚는다 */
+    blockquote em { font-style:normal; color:#765D2A; }
 
     /* ── 후반부 ── */
     .outro { position:relative; z-index:3; background:var(--cream); padding-top:6vh; }
@@ -576,7 +583,9 @@
     // ── 카메라 키프레임 ──
     var CAM = {
       hero:   { p:[7.5,6.4,20.5], t:[-1.2,0.8,3.0] },   // 공(서버 손)이 글 단 밖에 오도록
-      serve:  { p:[3.4,2.8,14.2],  t:[-0.2,2.8,0] },
+      // 눈높이를 공 아래로 내린다. 가까운 공(y1.9)과 먼 네트 윗선(y2.42)이
+      // 같은 눈높이에 있으면 화면에서 겹쳐 '네트에 맞은 서브'로 읽힌다.
+      serve:  { p:[3.6,1.0,16.5],  t:[-1.0,2.2,0] },
       serve2: { p:[5.2,1.6,-9.5],  t:[-1.8,2.0,-3.4] },
       receive:{ p:[-9.0,3.6,-10.5],t:[0.4,1.8,-1.2] },
       toss:   { p:[-7.0,2.6,-4.6], t:[-0.8,2.8,-0.8] },
@@ -585,7 +594,7 @@
       end:    { p:[1.2,2.0,7.4],   t:[-3.0,0.5,10.8] }
     };
     // 시점(각도)은 그대로. 거리만 물려서 코트 구조가 프레임에 들어오게 한다
-    var DOLLY = { hero:1.0, serve:1.75, serve2:1.0, receive:1.3, toss:1.7, spike:1.2, land:1.15, end:1.0 };
+    var DOLLY = { hero:1.0, serve:1.0, serve2:1.0, receive:1.3, toss:1.7, spike:1.2, land:1.15, end:1.0 };
     Object.keys(CAM).forEach(function(k){
       var c = CAM[k], d = DOLLY[k] || 1;
       c.p = [c.t[0]+(c.p[0]-c.t[0])*d, c.t[1]+(c.p[1]-c.t[1])*d, c.t[2]+(c.p[2]-c.t[2])*d];
@@ -597,7 +606,7 @@
     // cx / cy 는 [넓은 화면, 좁은 화면] 의 화면 중심 비율.
     var LAY = {
       hero:   { text:'top',    cx:[0.60,0.50], cy:[0.56,0.70] },  // 정지 — 코트 전체를 발치에
-      serve:  { text:'bottom', cx:[0.64,0.52], cy:[0.42,0.32] },  // 손에서 네트 너머로 솟는다
+      serve:  { text:'bottom', cx:[0.60,0.52], cy:[0.44,0.32] },  // 손에서 네트 너머로 솟는다
       serve2: { text:'top',    cx:[0.58,0.48], cy:[0.54,0.68] },  // 넘어와 떨어진다
       receive:{ text:'bottom', cx:[0.66,0.54], cy:[0.44,0.33] },  // 바닥에서 퍼올린다
       toss:   { text:'bottom', cx:[0.60,0.50], cy:[0.46,0.35] },  // 네트 위로 올린다
@@ -660,6 +669,16 @@
     var W=0, H=0, DPR=1, CX=0, CY=0, FPX=0, WIDE=false;
     var GUTTER = 0.34;   // 좁은 화면에서 그림에게 떼어주는 띠의 기본값 (CSS padding 과 맞춘다)
     var BAND0 = 0, BAND1 = 0;
+    var TB0 = 0, TB1 = 0, TBX = 0;   // 넓은 화면에서 글 블록이 실제로 차지한 자리
+    // 국면 i 의 글 블록 상자. 못 재면 화면 한가운데를 넉넉히 잡는다.
+    // 오른쪽 끝까지 재야 한다 — 글 폭보다 좁게 지우면 문단 위로 선이 지나간다.
+    function colBox(i) {
+      var el = COLS[i];
+      if (!el) return [H*0.30, H*0.86, Math.min(W*0.40, 560)];
+      var r = el.getBoundingClientRect(), pad = H*0.035;
+      return [r.top - pad, r.bottom + pad, r.right + W*0.02];
+    }
+    function textBox() { return [TB0, TB1, TBX]; }
     // 국면 i 의 그림 띠를 화면 좌표로. 글 블록을 침범하지 않는 선에서 최대한 넓게 잡는다
     function bandAt(i) {
       var el = COLS[i], lay = (layOf(ORDER[i]) || LAY.hero).text;
@@ -897,7 +916,12 @@
       var topness = ta + (tb - ta) * camT;
       CX = W * (la.cx[ix] + (lb.cx[ix] - la.cx[ix]) * camT);
       CY = H * (la.cy[ix] + (lb.cy[ix] - la.cy[ix]) * camT);
-      if (!WIDE) {
+      if (WIDE) {
+        var ca = colBox(i0), cb = nxtPhase ? colBox(i0+1) : ca;
+        TB0 = ca[0] + (cb[0]-ca[0])*camT;
+        TB1 = ca[1] + (cb[1]-ca[1])*camT;
+        TBX = ca[2] + (cb[2]-ca[2])*camT;
+      } else {
         // 그림 띠는 고정 34% 가 아니라 글 블록이 끝나는 자리에서 시작한다.
         // 고정값으로 두면 글이 길거나 글꼴이 바뀔 때 그대로 겹쳐버린다(스파이크가 그랬다).
         var bd = bandAt(i0), bd2 = nxtPhase ? bandAt(i0+1) : bd;
@@ -1038,14 +1062,26 @@
       if (lw < 0.02) {
         ctx.globalCompositeOperation = 'destination-out';
         if (WIDE) {
-          // 넓은 화면은 글이 왼쪽 단에 앉는다. 세로는 여유가 있어 가로만 비운다.
-          // 글 단 폭만큼은 완전히 비우고 그 바깥에서 풀어준다 — 그라디언트만 쓰면
-          // 단 한가운데에서 잉크가 절반쯤 남아 글 위로 선이 지나간다.
-          var solid = Math.min(W*0.34, 520);
-          ctx.fillStyle = 'rgba(0,0,0,0.97)'; ctx.fillRect(0, 0, solid, H);
-          var gx = ctx.createLinearGradient(solid, 0, W*0.56, 0);
-          gx.addColorStop(0, 'rgba(0,0,0,0.97)'); gx.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = gx; ctx.fillRect(solid, 0, W*0.56 - solid, H);
+          // 넓은 화면은 글이 왼쪽 단에 앉는다. 예전엔 그 단을 세로로 통째 비웠는데,
+          // 글은 단의 절반밖에 안 채우니 나머지 절반이 영영 빈 채로 남았다.
+          // 글 블록이 실제로 차지한 높이만 비우고 위아래는 돌려준다.
+          var tb = textBox(), ty0 = tb[0], ty1 = tb[1], fy = H*0.06;
+          var solid = tb[2], soft = solid + W*0.13;
+          var band = function (y, h, a) {
+            if (h <= 0) return;
+            ctx.fillStyle = 'rgba(0,0,0,' + a.toFixed(3) + ')';
+            ctx.fillRect(0, y, solid, h);
+            var g = ctx.createLinearGradient(solid, 0, soft, 0);
+            g.addColorStop(0, 'rgba(0,0,0,' + a.toFixed(3) + ')');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g; ctx.fillRect(solid, y, soft - solid, h);
+          };
+          band(ty0, ty1 - ty0, 0.97);
+          for (var fi = 0; fi < 8; fi++) {          // 위아래 경계를 계단으로 풀어준다
+            var a = 0.97 * (1 - (fi + 0.5) / 8), s = fy / 8;
+            band(ty0 - (fi + 1) * s, s, a);
+            band(ty1 + fi * s, s, a);
+          }
         } else {
           // 좁은 화면은 그림 띠 바깥을 전부 지운다. 띠는 글 블록이 비켜준 자리다.
           var edge = H * 0.07;                     // 경계는 부드럽게
