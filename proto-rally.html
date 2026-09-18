@@ -119,26 +119,15 @@
     .hero .col { max-width:min(46em,100%); }
     .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:800; color:var(--dark);
                line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
-    /* 강조 기법 — 레퍼런스 13개 사례에서 뽑은 방법들. html[data-hl] 로 전환.
-       수집된 사례에서 크기를 키운 경우는 0건, 형광펜·박스·밑줄도 0건이었다.
-       지배적 방법은 이탤릭(9/13)인데 한글엔 이탤릭이 없다 — 남는 건 색과 서체 전환.
-       색은 Altina(#765D2A) 계열의 진한 금갈색. 크림 배경에서 대비 5.9:1 로 안전하다.
-       (형광펜 노랑 #fac710 은 1.5:1, Kin 의 금색 #E3B34D 는 1.8:1 로 글자색으론 못 쓴다) */
-    .hero h1 em { font-style:normal; font-family:var(--serif); font-weight:700; color:#765D2A; }  /* 기본 = R4 */
-    /* R1 색만. 크기·굵기 동일 — Sandeep / VilenDesign / Altina */
-    html[data-hl="R1"] .hero h1 em { color:#765D2A; }
-    /* R2 색 + 크기 (요청 반영, 레퍼런스에는 없는 방식) */
-    html[data-hl="R2"] .hero h1 em { color:#765D2A; font-size:1.22em; }
-    /* R3 서체 전환만 — 이탤릭의 한글 대응. This.design 이 다른 서체로 갈아끼운 것과 같은 수 */
-    html[data-hl="R3"] .hero h1 em { font-family:var(--serif); font-weight:700; color:inherit; }
-    /* R4 서체 전환 + 색 — Kin / Altina / The Nest */
-    html[data-hl="R4"] .hero h1 em { font-family:var(--serif); font-weight:700; color:#765D2A; }
-    /* R5 농도 대비 — AlterG */
-    html[data-hl="R5"] .hero h1 { color:rgba(62,47,42,.34); }
-    html[data-hl="R5"] .hero h1 em { color:var(--dark); }
-    /* R6 서체 전환 + 색 + 크기 */
-    html[data-hl="R6"] .hero h1 em { font-family:var(--serif); font-weight:700;
-                                     color:#765D2A; font-size:1.18em; }
+    /* 제목 강조: 서체 전환 + 색. 크기·굵기는 건드리지 않는다.
+       수집한 13개 사례에서 지배적 방법은 이탤릭(9/13)이었고, 크기를 키우거나
+       형광펜·박스를 쓴 사례는 0건이었다. 한글엔 이탤릭이 없으므로 명조로 갈아끼운다
+       (This.design 이 한 단어만 다른 세리프로 바꾼 것과 같은 수). 본문이 이미 명조라
+       페이지 안에서 연결된다.
+       색 #765D2A 는 Altina 에서 가져왔다 — 그쪽 배경(#EDE3D9)도 같은 베이지 계열이고
+       색만으로 강조한다. 크림(#fff8e1) 위 대비 5.9:1.
+       브랜드 노랑 #fac710 은 1.5:1 이라 글자색으로 쓸 수 없다. 바탕·선으로만 쓴다. */
+    .hero h1 em { font-style:normal; font-family:var(--serif); font-weight:700; color:#765D2A; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
