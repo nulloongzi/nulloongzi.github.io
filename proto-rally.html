@@ -78,6 +78,8 @@
     .rail { position:fixed; right:max(14px,2.2vw); top:50%; transform:translateY(-50%);
             z-index:15; display:flex; flex-direction:column; gap:15px; transition:opacity .35s; }
     .rail.hidden { opacity:0; pointer-events:none; }
+    /* 히어로에선 아직 국면이 시작 안 됐다. 활성 점 없이 떠 있으면 부유물처럼 보인다 */
+    .rail.preroll { opacity:0; pointer-events:none; }
     .rail a { width:9px; height:9px; border-radius:50%; display:block; position:relative;
               background:rgba(141,110,99,.26); border:1.5px solid transparent;
               transition:background .25s,transform .25s,border-color .25s; }
@@ -860,6 +862,7 @@
         if (y < top + h) { ph = s.getAttribute('data-phase'); t = (y-top)/h; break; }
       }
       phase = ph; pt = cl01(t);
+      rail.classList.toggle('preroll', phase === 'hero' && pt < 0.45);
       if (phase !== curRail) {
         curRail = phase;
         dots.forEach(function(d){ d.setAttribute('aria-current', d.getAttribute('data-for')===phase?'true':'false'); });
