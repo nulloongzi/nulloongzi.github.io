@@ -243,7 +243,7 @@
       <div class="q" data-l="ko">왜 '누룽지'예요?</div>
       <div class="q" data-l="en">Why "Nulloongzi"?</div>
       <div class="a" data-l="ko">
-        <p>한때 null(눌)이라는 이름으로 음악을 했었어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
+        <p>한때 null(눌)이라는 이름으로 음악을 했어요. 인스타 아이디도 null이었는데, 여행 가서 친구가 "널? 눌? 눌웅지?" 하다가 아이디가 null_oongzi가 됐죠.</p>
         <p>그 계정에 배구 영상을 음악 얹어서 올리다 보니, 어느새 코트에서 누룽지로 불리고 있더라고요.</p>
       </div>
       <div class="a" data-l="en">
@@ -586,7 +586,9 @@
       // 눈높이를 공 아래로 내린다. 가까운 공(y1.9)과 먼 네트 윗선(y2.42)이
       // 같은 눈높이에 있으면 화면에서 겹쳐 '네트에 맞은 서브'로 읽힌다.
       serve:  { p:[3.6,1.0,16.5],  t:[-1.0,2.2,0] },
-      serve2: { p:[5.2,1.6,-9.5],  t:[-1.8,2.0,-3.4] },
+      // 받는 쪽 코트 전체가 한 덩어리로 보이게 물러나 내려다본다. 낮은 시점에서는
+      // 바닥 선이 화면 끝까지 뻗어 나가 코트가 아니라 줄무늬로 읽혔다.
+      serve2: { p:[2.0,6.2,-19.0], t:[-0.6,0.8,0.0] },
       receive:{ p:[-9.0,3.6,-10.5],t:[0.4,1.8,-1.2] },
       toss:   { p:[-7.0,2.6,-4.6], t:[-0.8,2.8,-0.8] },
       spike:  { p:[-2.4,5.6,-5.4], t:[-1.3,0.7,3.6] },
@@ -685,11 +687,14 @@
       var pad = H*0.045, minH = H*0.22;
       if (!el) return lay === 'top' ? [H*(1-GUTTER), H] : [0, H*GUTTER];
       var r = el.getBoundingClientRect();
+      // 띠의 경계는 글이 끝나는 자리다. 예전엔 여기에 34% 바닥을 깔아뒀는데,
+      // 여백을 글 높이에 맞춰 잡기 시작한 뒤로는 그 바닥이 오히려 띠를 눌러
+      // 짧은 장면에서 글과 그림 사이가 화면의 3할씩 비었다. 상한만 남긴다.
       if (lay === 'top') {
-        var y0 = Math.max(H*(1-GUTTER), r.bottom + pad);
+        var y0 = Math.max(H*0.42, r.bottom + pad);
         return [Math.min(y0, H - minH), H];
       }
-      var y1 = Math.min(H*GUTTER, r.top - pad);
+      var y1 = Math.min(H*0.58, r.top - pad);
       return [0, Math.max(y1, minH)];
     }
     function resize() {
@@ -888,7 +893,10 @@
       rail.classList.toggle('preroll', phase === 'hero' && pt < 0.45);
       if (phase !== curRail) {
         curRail = phase;
-        dots.forEach(function(d){ d.setAttribute('aria-current', d.getAttribute('data-for')===phase?'true':'false'); });
+        // 이름 장면(serve2)처럼 레일에 점이 없는 곁가지에서는 직전 국면의 점을
+        // 그대로 켜둔다. 안 그러면 그 장면에 있는 동안 현재 위치가 사라진다.
+        var lit = railOf(phase);
+        dots.forEach(function(d){ d.setAttribute('aria-current', d.getAttribute('data-for')===lit?'true':'false'); });
       }
     }
 
@@ -1103,6 +1111,17 @@
     // ── 레일 ──
     var COLS = secs.map(function(x){ return x.querySelector('.col'); });
     var curRail = '', dots = [];
+    // 국면 → 레일에서 켤 점. 점이 없는 국면은 직전 점을 물려받는다.
+    var RAILOF = {};
+    (function(){
+      var last = '';
+      secs.forEach(function(s){
+        var ph = s.getAttribute('data-phase');
+        if (s.getAttribute('data-rail')) last = ph;
+        RAILOF[ph] = last;
+      });
+    })();
+    function railOf(ph){ return RAILOF[ph] || ph; }
     secs.forEach(function(s){
       s.id = s.getAttribute('data-phase');
       s.setAttribute('data-lay', layOf(s.getAttribute('data-phase')).text);
