@@ -277,12 +277,12 @@
       <div class="q" data-l="ko">그런데 왜 지도까지 만들었어요?</div>
       <div class="q" data-l="en">So why go as far as building a map?</div>
       <div class="a" data-l="ko">
-        <p>우연히 아는 형 덕에 6인제를 시작했어요. 그 형 따라다니면서 얼굴 트니까 초대가 계속 들어오더라고요. 어느새 제가 DM 받는 쪽이 돼 있었죠. "어디서 운동할 수 있어요?" 하나하나 답하다가 — 아, 지도를 만들어야겠다.</p>
-        <p>제일 뿌듯한 건, 소개로 다녀온 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요.</p>
+        <p>아는 형 덕에 6인제를 시작했어요. 그 형 따라다니면서 얼굴 트니까 초대가 계속 들어오더라고요. 어느새 제가 DM 받는 쪽이 돼 있었죠. "어디서 운동할 수 있어요?" 하나하나 답하다가 — 아, 지도를 만들어야겠다.</p>
+        <p>지도 만들고 제일 뿌듯한 건, 제 소개로 간 사람이 "덕분에 즐거웠다"고 하고, 그 팀도 "좋은 사람이 왔다 갔다"고 할 때예요.</p>
       </div>
       <div class="a" data-l="en">
         <p>I got into 6-a-side by chance, through an older guy at a club. I followed him around, met people, and the invitations kept coming. Before long I was the one getting the DMs. "Where can I play?" — answering them one by one, it hit me. I should just make a map.</p>
-        <p>The best part is when the person I introduced says "that was great, thanks," and the club says "a good one came by."</p>
+        <p>The best part of running it is when the person I sent over says "that was great, thanks," and the club says "a good one came by."</p>
       </div>
     </div>
   </section>
@@ -522,8 +522,11 @@
       hero:    { A:HAND, C:HAND, B:HAND },   // 공은 서버 손에 멈춰 있다. 여기서 움직이는 건 시점뿐
       serve:   { A:HAND,              C:[0.4,6.8,3],     B:[-1.2,3.6,-3.2] },
       serve2:  { A:[-1.2,3.6,-3.2],   C:[-1.8,2.0,-5.0], B:[-2,1.15,-5.75] },
-      receive: { A:[-2,1.15,-5.75],   C:[-1.2,5.4,-3.6], B:[0.45,2.35,-1.1] },
-      toss:    { A:[0.45,2.35,-1.1],  C:[-0.6,5.8,-0.9], B:[-1.9,4.1,-0.75] },
+      // 리시브는 네트에 붙이지 않는다. 공을 네트 높이(2.42) 언저리에 두면
+      // 화면에서 네트 띠에 삼켜져 '네트에 맞은 공'으로 읽힌다. 실제로도 좋은
+      // 리시브는 네트에서 떨어뜨려 높게 올린다.
+      receive: { A:[-2,1.15,-5.75],   C:[-1.2,5.4,-3.6], B:[0.6,3.15,-2.5] },
+      toss:    { A:[0.6,3.15,-2.5],   C:[-0.6,6.0,-1.2], B:[-1.9,4.1,-0.75] },
       spike:   { A:[-1.9,4.1,-0.75],  C:[-1.5,2.7,1.3],  B:[-1.1,0.36,4.2] }
     };
     var HOPS = [
@@ -590,13 +593,15 @@
       // 바닥 선이 화면 끝까지 뻗어 나가 코트가 아니라 줄무늬로 읽혔다.
       serve2: { p:[2.0,6.2,-19.0], t:[-0.6,0.8,0.0] },
       receive:{ p:[-9.0,3.6,-10.5],t:[0.4,1.8,-1.2] },
-      toss:   { p:[-7.0,2.6,-4.6], t:[-0.8,2.8,-0.8] },
+      // 눈높이를 올려 네트를 내려다본다. 공과 같은 높이에서 보면 네트 띠가
+      // 공 뒤에 깔려 올라가는 공이 네트에 걸린 것처럼 보였다.
+      toss:   { p:[-18.3,6.8,-8.1], t:[-0.8,2.2,-1.0] },
       spike:  { p:[-2.4,5.6,-5.4], t:[-1.3,0.7,3.6] },
       land:   { p:[3.0,3.6,1.0],   t:[-2.2,0.4,7.8] },
       end:    { p:[1.2,2.0,7.4],   t:[-3.0,0.5,10.8] }
     };
     // 시점(각도)은 그대로. 거리만 물려서 코트 구조가 프레임에 들어오게 한다
-    var DOLLY = { hero:1.0, serve:1.0, serve2:1.0, receive:1.55, toss:1.7, spike:1.2, land:1.15, end:1.0 };
+    var DOLLY = { hero:1.0, serve:1.0, serve2:1.0, receive:1.55, toss:1.0, spike:1.2, land:1.15, end:1.0 };
     Object.keys(CAM).forEach(function(k){
       var c = CAM[k], d = DOLLY[k] || 1;
       c.p = [c.t[0]+(c.p[0]-c.t[0])*d, c.t[1]+(c.p[1]-c.t[1])*d, c.t[2]+(c.p[2]-c.t[2])*d];
@@ -611,7 +616,7 @@
       serve:  { text:'bottom', cx:[0.60,0.52], cy:[0.44,0.32] },  // 손에서 네트 너머로 솟는다
       serve2: { text:'top',    cx:[0.58,0.48], cy:[0.54,0.68] },  // 넘어와 떨어진다
       receive:{ text:'bottom', cx:[0.56,0.54], cy:[0.44,0.33] },  // 바닥에서 퍼올린다
-      toss:   { text:'bottom', cx:[0.60,0.50], cy:[0.46,0.35] },  // 네트 위로 올린다
+      toss:   { text:'bottom', cx:[0.54,0.50], cy:[0.46,0.35] },  // 네트 위로 올린다
       spike:  { text:'top',    cx:[0.62,0.50], cy:[0.52,0.66] },  // 높은 데서 바닥으로 꽂힌다
       land:   { text:'top',    cx:[0.60,0.50], cy:[0.56,0.70] },  // 바닥을 튀어 밥그릇으로
       end:    { text:'top',    cx:[0.60,0.50], cy:[0.54,0.66] }
