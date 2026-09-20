@@ -260,11 +260,11 @@
       <div class="q" data-l="ko">배구 하면서 제일 기억에 남는 건?</div>
       <div class="q" data-l="en">What sticks with you most?</div>
       <div class="a" data-l="ko">
-        <p>그때는 새로운 사람 만나는 게 별로였어요. 어쩌다 동호회 회식을 갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
+        <p>그때는 새로운 사람 만나는 게 별로였어요. 어쩌다 동호회 회식을 따라갔는데, 운동 끝나고 다 같이 밥 먹는 게 그렇게 재밌더라고요. 그 뒤로 3년을 매주 그랬어요. 운동하고, 먹고.</p>
         <p>배구가 아니라 밥 때문에 계속 나갔어요.</p>
       </div>
       <div class="a" data-l="en">
-        <p>Back then I didn't much like meeting new people. I ended up at a club dinner after practice once, and eating together afterwards turned out to be the best part. I did that every week for three years. Play, then eat.</p>
+        <p>Back then I didn't much like meeting new people. I got dragged along to a club dinner after practice once, and eating together turned out to be the best part. I did that every week for three years. Play, then eat.</p>
         <p>I kept showing up for the food, not the volleyball.</p>
       </div>
     </div>
@@ -596,7 +596,7 @@
       end:    { p:[1.2,2.0,7.4],   t:[-3.0,0.5,10.8] }
     };
     // 시점(각도)은 그대로. 거리만 물려서 코트 구조가 프레임에 들어오게 한다
-    var DOLLY = { hero:1.0, serve:1.0, serve2:1.0, receive:1.3, toss:1.7, spike:1.2, land:1.15, end:1.0 };
+    var DOLLY = { hero:1.0, serve:1.0, serve2:1.0, receive:1.55, toss:1.7, spike:1.2, land:1.15, end:1.0 };
     Object.keys(CAM).forEach(function(k){
       var c = CAM[k], d = DOLLY[k] || 1;
       c.p = [c.t[0]+(c.p[0]-c.t[0])*d, c.t[1]+(c.p[1]-c.t[1])*d, c.t[2]+(c.p[2]-c.t[2])*d];
@@ -610,7 +610,7 @@
       hero:   { text:'top',    cx:[0.60,0.50], cy:[0.56,0.70] },  // 정지 — 코트 전체를 발치에
       serve:  { text:'bottom', cx:[0.60,0.52], cy:[0.44,0.32] },  // 손에서 네트 너머로 솟는다
       serve2: { text:'top',    cx:[0.58,0.48], cy:[0.54,0.68] },  // 넘어와 떨어진다
-      receive:{ text:'bottom', cx:[0.66,0.54], cy:[0.44,0.33] },  // 바닥에서 퍼올린다
+      receive:{ text:'bottom', cx:[0.56,0.54], cy:[0.44,0.33] },  // 바닥에서 퍼올린다
       toss:   { text:'bottom', cx:[0.60,0.50], cy:[0.46,0.35] },  // 네트 위로 올린다
       spike:  { text:'top',    cx:[0.62,0.50], cy:[0.52,0.66] },  // 높은 데서 바닥으로 꽂힌다
       land:   { text:'top',    cx:[0.60,0.50], cy:[0.56,0.70] },  // 바닥을 튀어 밥그릇으로
@@ -672,6 +672,7 @@
     var GUTTER = 0.34;   // 좁은 화면에서 그림에게 떼어주는 띠의 기본값 (CSS padding 과 맞춘다)
     var BAND0 = 0, BAND1 = 0;
     var TB0 = 0, TB1 = 0, TBX = 0;   // 넓은 화면에서 글 블록이 실제로 차지한 자리
+    var SOLIDX = 0;                  // 지우개가 완전히 비우는 오른쪽 끝
     // 국면 i 의 글 블록 상자. 못 재면 화면 한가운데를 넉넉히 잡는다.
     // 오른쪽 끝까지 재야 한다 — 글 폭보다 좁게 지우면 문단 위로 선이 지나간다.
     function colBox(i) {
@@ -1075,6 +1076,7 @@
           // 글 블록이 실제로 차지한 높이만 비우고 위아래는 돌려준다.
           var tb = textBox(), ty0 = tb[0], ty1 = tb[1], fy = H*0.06;
           var solid = tb[2], soft = solid + W*0.13;
+          SOLIDX = solid;
           var band = function (y, h, a) {
             if (h <= 0) return;
             ctx.fillStyle = 'rgba(0,0,0,' + a.toFixed(3) + ')';
@@ -1105,6 +1107,13 @@
           ctx.fillStyle = gc; ctx.fillRect(0, y1, W, edge);
         }
         ctx.globalCompositeOperation = 'source-over';
+        // 넓은 화면에서 공이 글 단 바깥에 온전히 나와 있으면 지운 뒤에 다시 그린다.
+        // 지우개의 부드러운 자락이 공을 반쯤 깎아 흐릿한 공이 남곤 했다. 글 단 밖이면
+        // 글자 위에 올라탈 일이 없으니 깎을 이유도 없다.
+        if (WIDE && ballA > 0.01 && BALLXY[0] - BALLXY[2] > SOLIDX) {
+          ctx.strokeStyle = 'rgba('+INK+',1)';
+          ballAt(c, ball, ballA, ink, rotor(SPINAXIS[cur]||[1,0,0], spinDist/BALL_R*0.25));
+        }
       }
     }
 
@@ -1149,8 +1158,10 @@
         var ch = el.offsetHeight, lay = layOf(s.getAttribute('data-phase')).text;
         var keep = H2 * 0.14;                       // 그림에게 최소한 남겨두는 띠
         if (lay === 'bottom') {
+          // 글은 바닥에 붙인다. 위쪽 여백을 35% 로 묶어뒀더니 글이 짧은 장면에서
+          // 글이 화면 한가운데 떠버리고 아래 3할이 통째로 비었다(리시브가 그랬다).
           var pb = H2 * 0.09;
-          var pt = Math.max(keep, Math.min(H2 * 0.35, H2 - ch - pb));
+          var pt = Math.max(keep, H2 - ch - pb);
           s.style.paddingTop = pt.toFixed(1) + 'px';
           s.style.paddingBottom = pb.toFixed(1) + 'px';
         } else {
