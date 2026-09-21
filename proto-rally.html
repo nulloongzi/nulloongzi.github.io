@@ -180,7 +180,10 @@
 
     /* ── 후반부 ── */
     .outro { position:relative; z-index:3; background:var(--cream); padding-top:6vh; }
-    .wrap { max-width:720px; margin:0 auto; padding:0 max(22px,6vw); }
+    /* 아웃트로도 인터뷰와 같은 왼쪽 축에 세운다. 가운데로 모으면 넓은 화면에서
+       글이 274px 오른쪽으로 순간이동해, 일곱 장면을 따라오던 시선이 끊긴다. */
+    .wrap { margin:0; padding:0 max(22px,6vw); }
+    .outro section > * { max-width:640px; }
     .outro section { min-height:0; padding:46px 0; display:block; }
     .outro h3.sec { font-size:.74rem; font-weight:800; letter-spacing:.2em; color:var(--brown);
                     text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:24px; }
@@ -191,7 +194,7 @@
                display:flex; align-items:center; gap:9px; flex-wrap:wrap; letter-spacing:-.02em; }
     .badge { font-size:.68rem; font-weight:700; padding:2px 10px; border-radius:999px;
              background:var(--yellow); color:var(--dark); white-space:nowrap; letter-spacing:0; }
-    .badge.soon { background:rgba(141,110,99,.15); color:var(--brown); }
+    .badge.soon { background:rgba(141,110,99,.15); color:var(--dark); }   /* 3.64:1 은 11px 글씨에 모자란다 */
     .card .desc { margin:8px 0 18px; font-size:.98rem; }
     .links { display:flex; gap:10px; flex-wrap:wrap; }
     .btn { display:inline-flex; align-items:center; padding:9px 20px; border-radius:999px;
@@ -354,18 +357,18 @@
       <div class="card">
         <h4><span data-l="ko">누룽지도</span><span data-l="en">Nulloongzi-do</span>
           <span class="badge"><span data-l="ko">운영 중</span><span data-l="en">Live</span></span></h4>
-        <p class="desc" data-l="ko">전국 배구 동호회를 지도 한 눈에. 지역·요일·대상으로 찾아 바로 연락하고, 오늘 뛸 픽업 게임까지. 마음에 든 팀은 도시락에 담아두고, 코트에선 안치기로 라운드를 자동 배치.</p>
+        <p class="desc" data-l="ko">전국 배구 동호회를 지도에 모았어요. 지역·요일·대상으로 찾아서 바로 연락하고, 오늘 뛸 픽업 게임도 볼 수 있어요. 마음에 든 팀은 도시락에 담아두고요.</p>
         <p class="desc" data-l="en">Volleyball clubs across Korea on one map. Filter by region, day and who plays, reach out directly, and find today's pickup games. Save teams to your lunchbox, and let Anchigi sort out the rounds courtside.</p>
         <div class="links">
           <a class="btn primary" href="https://do.nulloongzi.com/"><span data-l="ko">웹에서 열기</span><span data-l="en">Open the map</span></a>
-          <a class="btn secondary" href="https://play.google.com/store/apps/details?id=com.nulloongzi.nulloongzido">Google Play</a>
+          <a class="btn ghost" href="https://play.google.com/store/apps/details?id=com.nulloongzi.nulloongzido">Google Play</a>
         </div>
       </div>
 
       <div class="card">
         <h4><span data-l="ko">안치기</span><span data-l="en">Anchigi</span>
           <span class="badge"><span data-l="ko">누룽지도 안에서</span><span data-l="en">Part of the map</span></span></h4>
-        <p class="desc" data-l="ko">참석자와 가능 포지션만 넣으면 라운드별 팀 배치를 즉석에서 짜주는 도구. 출전·대기·포지션이 고르게 돌아가도록 배분합니다. 로그인 없이 바로.</p>
+        <p class="desc" data-l="ko">참석자랑 가능한 포지션만 넣으면 라운드별 팀을 바로 짜줘요. 출전·대기·포지션이 고르게 돌아가게 나눠주고요. 로그인 없이 쓸 수 있어요.</p>
         <p class="desc" data-l="en">Put in who showed up and what they can play, and it lays out the teams round by round — balancing court time, bench time and positions. No login needed.</p>
         <div class="links">
           <a class="btn primary" href="https://do.nulloongzi.com/anchigi.html"><span data-l="ko">웹에서 열기</span><span data-l="en">Open Anchigi</span></a>
@@ -375,14 +378,14 @@
       <div class="card">
         <h4><span data-l="ko">AI 심판</span><span data-l="en">AI Referee</span>
           <span class="badge soon"><span data-l="ko">준비 중</span><span data-l="en">Coming soon</span></span></h4>
-        <p class="desc" data-l="ko">9인제에서 6인제로 넘어갈 때 제일 큰 걸림돌이 로테이션이에요. 규칙이 어려워서 못 즐기는 일이 없도록 만들고 있습니다.</p>
-        <p class="desc" data-l="en">Rotation is the biggest thing keeping 9-a-side players from moving to the six-player game. Building it so nobody misses out just because the rules are hard.</p>
+        <p class="desc" data-l="ko">로테이션을 대신 봐주는 심판이에요. 규칙을 몰라도 6인제가 돌아가게 만들고 있어요.</p>
+        <p class="desc" data-l="en">A referee that keeps track of the rotation for you, so a six-player game runs even when nobody knows the rules.</p>
       </div>
     </section>
 
     <section>
       <h3 class="sec"><span data-l="ko">연락</span><span data-l="en">Contact</span></h3>
-      <p data-l="ko">배구, 협업, 클럽 등록 문의 모두 환영합니다.</p>
+      <p data-l="ko">배구 얘기도, 같이 만들자는 얘기도, 클럽 등록도 다 환영이에요.</p>
       <p data-l="en">Volleyball, collaboration, or club registration — all welcome.</p>
       <div class="links" style="margin-top:18px" id="contactLinks"></div>
     </section>
@@ -391,7 +394,7 @@
 
 <footer>
   <span data-l="ko">© 누룽지 · 밥은 먹고 다니냐</span>
-  <span data-l="en">© nulloongzi</span>
+  <span data-l="en">© nulloongzi · did you eat?</span>
 </footer>
 
 <script>
