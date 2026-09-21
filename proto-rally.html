@@ -111,7 +111,18 @@
       section[data-phase] .a p   { font-size:1rem; line-height:1.8; margin-bottom:14px; }
       section[data-phase] h2     { margin-bottom:24px; }
       section[data-phase] blockquote { margin-top:24px; font-size:clamp(1.24rem,4.6vw,1.6rem); }
-      section[data-phase] .a + .q, section[data-phase] blockquote + .q { margin-top:30px; }
+      /* 아주 낮은 화면(667px 급)에서는 세로 리듬을 한 단계 줄인다. 스파이크는
+         Q·A 가 두 벌에 인용문까지 있어 영문에서 화면을 꽉 채운다. */
+      @media (max-height:700px){
+        section[data-phase] blockquote { margin-top:16px; }
+        section[data-phase] .a + .q, section[data-phase] blockquote + .q,
+        section[data-phase] .a + .q + .q, section[data-phase] blockquote + .q + .q,
+        section[data-phase] .a + .a + .q, section[data-phase] blockquote + blockquote + .q { margin-top:22px; }
+        section[data-phase] h2 { margin-bottom:18px; }
+      }
+      section[data-phase] .a + .q, section[data-phase] blockquote + .q,
+      section[data-phase] .a + .q + .q, section[data-phase] blockquote + .q + .q,
+      section[data-phase] .a + .a + .q, section[data-phase] blockquote + blockquote + .q { margin-top:30px; }
     }
     /* 마지막 국면은 두 화면. 위는 글, 아래는 로고가 서는 자리 —
        안 그러면 로고가 완성되는 순간 아웃트로가 덮어버린다 */
@@ -167,7 +178,7 @@
        넓은 화면에 맞추면 좁은 화면에서 문장이 또 잘리고, 좁은 화면에 맞추면
        넓은 화면이 토막 난다. 각 절을 덩어리로 만들어 두면 브라우저가 폭에 맞춰
        한 줄에 몇 개를 놓을지 정한다. 어느 폭에서든 줄 끝은 쉼표나 마침표다. */
-    .a p .u { display:inline-block; }
+    html[data-lang="ko"] .a p .u { display:inline-block; }
 
     /* 문단마다 기억에 남길 한 마디. 제목과 같은 문법 — 색 + 한 단계 굵게 */
     .a p em { font-style:normal; font-weight:700; color:var(--mark); }
@@ -175,7 +186,11 @@
     .a p em.vow { font-size:1.16em; letter-spacing:-.004em; }
     /* 다짐은 어느 폭에서든 제 줄을 갖는다. 줄표에서 한 박자 쉬고 떨어진다. */
     .a p:last-child { margin-bottom:0; }
-    .a + .q, blockquote + .q { margin-top:52px; }
+    /* 같은 뜻의 블록이 언어별로 두 벌이라, 뒤 언어에서는 .q 앞에 숨은 .q 가
+       놓여 인접 선택자(.a + .q)가 어긋난다. 숨은 형제도 건너뛰게 한다. */
+    .a + .q, blockquote + .q,
+    .a + .q + .q, blockquote + .q + .q,
+    .a + .a + .q, blockquote + blockquote + .q { margin-top:52px; }
 
     /* 인용: 이 글에서 제일 좋은 문장을 크게 */
     blockquote { margin:34px 0 0;
@@ -319,7 +334,7 @@
         <p><span class="u">어디서 하는지를 모르는 거요.</span> <span class="u">정보가 다 카페 안에 있어서,</span> <span class="u">가입하고 한참 눈팅해야 겨우 알게 되거든요.</span> <span class="u">풋살이나 농구는 집 근처 가서 그냥 하면 되잖아요.</span></p>
       </div>
       <div class="a" data-l="en">
-        <p><span class="u">Not knowing where to play.</span> <span class="u">The information all lives inside members-only forums — you have to join and read for a while before you find anything.</span> <span class="u">With futsal or basketball you just go to the court near your place and play.</span></p>
+        <p><span class="u">Not knowing where to play.</span> <span class="u">It all lives inside members-only forums — you have to join and read a while before you find anything.</span> <span class="u">With futsal or basketball you just show up at the court near your place.</span></p>
       </div>
       <blockquote data-l="ko">배구도 그랬으면 좋겠어요<br><em>언제 어디서든</em></blockquote>
       <blockquote data-l="en">I want volleyball to be like that<br><em>anywhere, anytime</em></blockquote>
@@ -330,7 +345,7 @@
         <p><span class="u">AI 심판이요.</span> <span class="u">9인제만 하던 분들이 6인제로 잘 안 넘어오는데,</span> <span class="u">물어보면 대개 로테이션 때문이에요.</span> <span class="u"><em>규칙 때문에 못 노는 건 좀 아깝잖아요.</em></span></p>
       </div>
       <div class="a" data-l="en">
-        <p><span class="u">An AI referee.</span> <span class="u">People who only play 9-a-side rarely move over to six,</span> <span class="u">and when I ask,</span> <span class="u">it's almost always the rotation.</span> <span class="u"><em>It feels like a waste to miss a game over the rules.</em></span></p>
+        <p><span class="u">An AI referee.</span> <span class="u">People who only play 9-a-side rarely move over to six,</span> <span class="u">and it's almost always the rotation.</span> <span class="u"><em>It feels like a waste to miss a game over the rules.</em></span></p>
       </div>
     </div>
   </section>
@@ -964,12 +979,11 @@
       var topness = ta + (tb - ta) * camT;
       CX = W * (la.cx[ix] + (lb.cx[ix] - la.cx[ix]) * camT);
       CY = H * (la.cy[ix] + (lb.cy[ix] - la.cy[ix]) * camT);
-      if (WIDE) {
-        var ca = colBox(i0), cb = nxtPhase ? colBox(i0+1) : ca;
-        TB0 = ca[0] + (cb[0]-ca[0])*camT;
-        TB1 = ca[1] + (cb[1]-ca[1])*camT;
-        TBX = ca[2] + (cb[2]-ca[2])*camT;
-      } else {
+      var ca = colBox(i0), cb = nxtPhase ? colBox(i0+1) : ca;
+      TB0 = ca[0] + (cb[0]-ca[0])*camT;
+      TB1 = ca[1] + (cb[1]-ca[1])*camT;
+      TBX = ca[2] + (cb[2]-ca[2])*camT;
+      if (!WIDE) {
         // 그림 띠는 고정 34% 가 아니라 글 블록이 끝나는 자리에서 시작한다.
         // 고정값으로 두면 글이 길거나 글꼴이 바뀔 때 그대로 겹쳐버린다(스파이크가 그랬다).
         var bd = bandAt(i0), bd2 = nxtPhase ? bandAt(i0+1) : bd;
@@ -1144,6 +1158,19 @@
           var gc = ctx.createLinearGradient(0, y1 + edge, 0, y1);
           gc.addColorStop(0, 'rgba(0,0,0,0.97)'); gc.addColorStop(1, 'rgba(0,0,0,0)');
           ctx.fillStyle = gc; ctx.fillRect(0, y1, W, edge);
+          // 띠에는 최소 높이를 보장해 두는데, 글이 길면 그 최소치가 글 영역을
+          // 파고든다(영문 스파이크가 그랬다). 글 상자는 따로 한 번 더 비운다.
+          var ty0 = TB0, ty1 = TB1, fe = H*0.05;
+          if (ty1 > ty0) {
+            ctx.fillStyle = 'rgba(0,0,0,0.97)';
+            ctx.fillRect(0, ty0, W, ty1 - ty0);
+            var gu = ctx.createLinearGradient(0, ty0 - fe, 0, ty0);
+            gu.addColorStop(0, 'rgba(0,0,0,0)'); gu.addColorStop(1, 'rgba(0,0,0,0.97)');
+            ctx.fillStyle = gu; ctx.fillRect(0, ty0 - fe, W, fe);
+            var gd = ctx.createLinearGradient(0, ty1, 0, ty1 + fe);
+            gd.addColorStop(0, 'rgba(0,0,0,0.97)'); gd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gd; ctx.fillRect(0, ty1, W, fe);
+          }
         }
         ctx.globalCompositeOperation = 'source-over';
         // 넓은 화면에서 공이 글 단 바깥에 온전히 나와 있으면 지운 뒤에 다시 그린다.
@@ -1204,9 +1231,14 @@
           s.style.paddingTop = pt.toFixed(1) + 'px';
           s.style.paddingBottom = pb.toFixed(1) + 'px';
         } else {
-          var pt2 = Math.min(H2 * 0.11, Math.max(H2 * 0.05, H2 - ch - keep));
+          // 남은 자리보다 큰 여백을 줄 수는 없다. 안 묶어두면 글이 화면 아래로
+          // 2px 씩 밀려난다(영문 스파이크가 작은 화면에서 그랬다).
+          var room = H2 - ch;
+          var pt2 = Math.max(0, Math.min(H2 * 0.11, Math.max(H2 * 0.025, room - keep), room));
           s.style.paddingTop = pt2.toFixed(1) + 'px';
-          s.style.paddingBottom = Math.max(keep, H2 - ch - pt2).toFixed(1) + 'px';
+          // 글이 정말 길면 띠의 최소치까지 내준다. 글이 화면 밖으로 밀리느니
+          // 그림이 얇아지는 게 낫다(영문 스파이크가 작은 화면에서 2px 넘쳤다).
+          s.style.paddingBottom = Math.max(H2 * 0.06, H2 - ch - pt2).toFixed(1) + 'px';
         }
       });
     }
