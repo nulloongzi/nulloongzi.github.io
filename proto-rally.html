@@ -167,10 +167,7 @@
     .a p em { font-style:normal; font-weight:700; color:var(--mark); }
     /* 지도를 만들기로 한 그 한 줄만 한 치수 크게 — 이 페이지가 시작된 자리다 */
     .a p em.vow { font-size:1.16em; letter-spacing:-.004em; }
-    /* 좁은 화면에서는 그 다짐을 통째로 아랫줄에 내린다. 한 치수 커진 탓에
-       줄 끝에서 '아, 지도를 / 만들어야겠다' 로 쪼개졌다. */
-    br.narrow { display:none; }
-    @media (max-width:899px){ br.narrow { display:inline; } }
+    /* 다짐은 어느 폭에서든 제 줄을 갖는다. 줄표에서 한 박자 쉬고 떨어진다. */
     .a p:last-child { margin-bottom:0; }
     .a + .q, blockquote + .q { margin-top:52px; }
 
@@ -294,11 +291,11 @@
       <div class="q" data-l="en">So why go as far as building a map?</div>
       <div class="a" data-l="ko">
         <p>거기서 몇 명이 따로 6인제 팀을 만들었어요. 그때 친해진 형을 따라 실력도 늘릴 겸 다른 동호회를 많이 다녔는데, 몇 팀 알고 나니 그 팀들 통해서 또 다른 팀을 줄줄이 알게 되더라고요. 그러다 보니 언제 어디서든 운동할 수 있게 됐죠.</p>
-        <p>어느새 제가 DM 받는 쪽이 돼 있었어요.<br>"어디서 운동할 수 있어요?"<br>하나하나 답하다가 —<br class="narrow"> <em class="vow">아, 지도를 만들어야겠다.</em></p>
+        <p>어느새 제가 DM 받는 쪽이 돼 있었어요.<br>"어디서 운동할 수 있어요?"<br>하나하나 답하다가 —<br> <em class="vow">아, 지도를 만들어야겠다.</em></p>
       </div>
       <div class="a" data-l="en">
         <p>A few of us from that club started a separate 6-a-side team. I followed one of them around to other clubs, partly just to get better, and once I knew a few teams those teams led to more. Before long I could play anywhere, any day.</p>
-        <p>And somewhere in there I became the one getting the DMs.<br>"Where can I play?"<br>Answering them one by one, it hit me —<br class="narrow"> <em class="vow">I should just make a map.</em></p>
+        <p>And somewhere in there I became the one getting the DMs.<br>"Where can I play?"<br>Answering them one by one, it hit me —<br> <em class="vow">I should just make a map.</em></p>
       </div>
     </div>
   </section>
