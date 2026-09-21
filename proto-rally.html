@@ -1246,7 +1246,7 @@
     // 살짝 굴리고 놓았을 뿐이라 아직 장면을 못 넘겼으면 진행 방향의 다음 장면으로 보낸다.
     var prevY = 0, gestureFrom = null, settleT = 0;
     var FLICK = 26;      // 이만큼만 움직이고 놓으면 '다음 장면으로' 의도로 본다
-    var QUIET = 170;     // 입력이 이만큼 멎으면 놓은 것으로 본다
+    var QUIET = 120;     // 입력이 이만큼 멎으면 놓은 것으로 본다 (스크롤바·키보드용)
 
     function settle() {
       if (reduced || gliding || gestureFrom === null) { gestureFrom = null; return; }
@@ -1263,7 +1263,7 @@
 
     function onScroll() {
       mark();
-      if (reduced || gliding) { prevY = scrollY; return; }
+      if (reduced || gliding || tDown) { prevY = scrollY; return; }
       if (gestureFrom === null) gestureFrom = prevY;
       prevY = scrollY;
       clearTimeout(settleT);
@@ -1271,7 +1271,29 @@
     }
     // 사용자가 다시 손을 대면 진행 중인 글라이드는 즉시 놓아준다
     function interrupt(){ if (gliding) { stopGlide(); prevY = scrollY; gestureFrom = scrollY; } }
-    addEventListener('touchstart', interrupt, { passive:true });
+
+    // ── 손가락: 붙잡는 동안은 자유, 떼는 즉시 넘긴다 ──
+    // 입력이 멎은 뒤에 앉히는 방식은 손가락에 안 맞는다. 손을 떼도 관성으로
+    // 한참 더 미끄러지고, 그게 다 멎어야 타이머가 걸린다 — 그래서 '흐르다가
+    // 멈춘 채로 1초 있다가 확 끌려가는' 느낌이 된다.
+    // 뗀 순간 바로 판단하고 글라이드를 시작한다. 글라이드는 매 프레임 위치를
+    // 직접 잡으므로 남은 관성을 덮어쓴다.
+    var tDown = false, tFrom = 0;
+    addEventListener('touchstart', function(){
+      interrupt(); tDown = true; tFrom = scrollY; clearTimeout(settleT);
+    }, { passive:true });
+    addEventListener('touchend', function(){
+      if (!tDown) return;
+      tDown = false; clearTimeout(settleT); gestureFrom = null;
+      if (reduced || gliding) return;
+      var y = scrollY;
+      if (y > lastSnap() + 4) return;                  // 아웃트로는 읽는 영역 — 자유
+      var moved = y - tFrom;
+      var i0 = nearestIdx(tFrom), i1 = nearestIdx(y), t = i1;
+      if (i1 === i0 && Math.abs(moved) > FLICK) t = i0 + (moved > 0 ? 1 : -1);
+      glide(SNAP[Math.max(0, Math.min(SNAP.length-1, t))]);
+    }, { passive:true });
+    addEventListener('touchcancel', function(){ tDown = false; }, { passive:true });
 
     // ── 휠은 가로챈다 ──
     // 손가락은 붙잡고 천천히 볼 수 있지만 휠에는 '붙잡기'가 없다. 한 칸에
