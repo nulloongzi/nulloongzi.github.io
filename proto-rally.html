@@ -121,6 +121,12 @@
     /* 마지막 국면은 두 화면. 위는 글, 아래는 로고가 서는 자리 —
        안 그러면 로고가 완성되는 순간 아웃트로가 덮어버린다 */
     section[data-phase="land"] { min-height:260vh; }
+    /* 두 화면짜리 섹션을 가운데 정렬하면 글이 한 화면 아래로 내려간다.
+       넓은 화면에서는 이 장면에 멈춰도 마지막 말이 한 글자도 안 보였다.
+       글은 첫 화면에 두고, 로고는 그 아래 한 화면을 통째로 쓴다. */
+    @media (min-width:900px){
+      section[data-phase="land"][data-lay] { justify-content:flex-start; padding-top:26vh; padding-bottom:0; }
+    }
 
     .hero { text-align:left; }
     /* 제목은 한 줄로 선다. 상한은 글 단 폭(46em)에 맞춰 잡았다 */
@@ -622,7 +628,9 @@
       receive:{ text:'bottom', cx:[0.56,0.54], cy:[0.44,0.33] },  // 바닥에서 퍼올린다
       toss:   { text:'bottom', cx:[0.54,0.50], cy:[0.46,0.35] },  // 네트 위로 올린다
       spike:  { text:'top',    cx:[0.62,0.50], cy:[0.52,0.66] },  // 높은 데서 바닥으로 꽂힌다
-      land:   { text:'top',    cx:[0.60,0.50], cy:[0.56,0.70] },  // 바닥을 튀어 밥그릇으로
+      // 밥그릇을 왼쪽으로 당기면 지우개 자락에 물려 흐려진다. 결말의 주인공이라
+      // 깎이면 안 된다 — 글 단에서 충분히 떨어뜨린다.
+      land:   { text:'top',    cx:[0.62,0.50], cy:[0.56,0.70] },  // 바닥을 튀어 밥그릇으로
       end:    { text:'top',    cx:[0.60,0.50], cy:[0.54,0.66] }
     };
     function layOf(k){ return LAY[k] || LAY.hero; }
