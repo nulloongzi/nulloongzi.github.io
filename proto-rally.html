@@ -133,11 +133,9 @@
     .hero .col { max-width:min(46em,100%); }
     /* 제목은 서체를 섞지 않는다. 명조는 가로획이 얇아 굵기를 올려도 고딕을
        못 이긴다 — 실제 폰트로 재보니 명조900 이 고딕700 의 0.82배였다.
-       같은 고딕 같은 굵기로 두고 색만 바꾼다. 색은 서로 다른 계열이라
-       굵기 싸움 없이 갈라진다.
-       연결어는 한 단계만 물린다(10.66→6.59:1). --brown(4.35:1)까지 내리면
-       노랑과 밝기가 비슷해져 둘이 한 덩어리로 뭉개진다. */
-    .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:800; color:#6B544C;
+       같은 고딕으로 두고 색으로 가른다. 서체를 섞으면 굵기 싸움이 붙는다.
+       연결어는 색과 굵기를 같이 물린다 — 두 단어만 또렷하게 남는다. */
+    .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:600; color:var(--brown);
                line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
     /* 제목 강조: 서체 전환 + 색. 크기·굵기는 건드리지 않는다.
        수집한 13개 사례에서 지배적 방법은 이탤릭(9/13)이었고, 크기를 키우거나
@@ -147,7 +145,7 @@
        색 #765D2A 는 Altina 에서 가져왔다 — 그쪽 배경(#EDE3D9)도 같은 베이지 계열이고
        색만으로 강조한다. 크림(#fff8e1) 위 대비 5.9:1.
        브랜드 노랑 #fac710 은 1.5:1 이라 글자색으로 쓸 수 없다. 바탕·선으로만 쓴다. */
-    .hero h1 em { font-style:normal; color:#A87C00; }   /* 브랜드 노랑을 진하게 — 대비 3.56:1 */
+    .hero h1 em { font-style:normal; font-weight:800; color:#A87C00; }   /* 브랜드 노랑을 진하게 */
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
