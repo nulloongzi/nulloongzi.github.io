@@ -28,7 +28,7 @@
   <!-- 인터뷰 본문용 명조. OFL 이고 Google Fonts 라 전달이 안정적이다 -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap">
   <style>
     :root {
       --yellow:#fac710; --brown:#8d6e63; --dark:#4e342e; --cream:#fff8e1; --white:#fff;
@@ -131,9 +131,12 @@
     .hero { text-align:left; }
     /* 제목은 한 줄로 선다. 상한은 글 단 폭(46em)에 맞춰 잡았다 */
     .hero .col { max-width:min(46em,100%); }
-    /* 강조는 '더 진하게'라야 강조다. 연결어를 800/10.66:1 로 두고 강조어를
-       700/5.87:1 로 두니 '플 땐'이 제목을 끌고 갔다. 연결어를 물린다. */
-    .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:700; color:var(--brown);
+    /* 강조는 '더 진하게'라야 강조다. 그런데 명조는 가로획이 얇아 굵기 값을
+       올려도 고딕을 못 이긴다 — 실제 폰트로 재보니 명조900 이 고딕700 의
+       0.82배였다(획이 덮는 면적 / 글자 폭). 굵기 숫자만 보면 800>700 인데
+       눈에는 연결어가 더 진하게 들어온 이유가 이거다.
+       연결어를 고딕400 까지 물려 명조900 이 1.26배로 앞서게 한다. */
+    .hero h1 { font-size:clamp(1.55rem,7.1vw,3.5rem); font-weight:400; color:var(--brown);
                line-height:1.12; letter-spacing:-.035em; margin-bottom:0; white-space:nowrap; }
     /* 제목 강조: 서체 전환 + 색. 크기·굵기는 건드리지 않는다.
        수집한 13개 사례에서 지배적 방법은 이탤릭(9/13)이었고, 크기를 키우거나
@@ -143,7 +146,7 @@
        색 #765D2A 는 Altina 에서 가져왔다 — 그쪽 배경(#EDE3D9)도 같은 베이지 계열이고
        색만으로 강조한다. 크림(#fff8e1) 위 대비 5.9:1.
        브랜드 노랑 #fac710 은 1.5:1 이라 글자색으로 쓸 수 없다. 바탕·선으로만 쓴다. */
-    .hero h1 em { font-style:normal; font-family:var(--serif); font-weight:800; color:#5C4415; }
+    .hero h1 em { font-style:normal; font-family:var(--serif); font-weight:900; color:#5C4415; }
     .hero .sub { font-size:clamp(1.02rem,2.2vw,1.2rem); color:var(--brown); max-width:22em; }
     .hero .scrollhint { margin-top:38px; font-size:.8rem; font-weight:600; color:rgba(62,47,42,.38);
                         letter-spacing:.06em; display:inline-flex; align-items:center; gap:8px; }
