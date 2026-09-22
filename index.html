@@ -205,11 +205,11 @@
     blockquote em { font-style:normal; color:var(--mark); }
 
     /* ── 후반부 ── */
-    .outro { position:relative; z-index:3; background:var(--cream); padding-top:6vh; }
-    /* 넓은 화면에서는 아웃트로 뒤로 로고가 비쳐야 한다. 글 단은 왼쪽 640px 이고
-       로고는 오른쪽에 서 있어서 서로 겹치지 않는다. */
+    /* 배경을 깔지 않는다. 몸통이 이미 크림색이고, 깔아두면 캔버스의 로고를
+       덮는다 — 좁은 화면에서 로고 아랫부분이 잘려 있었다. 넓은 화면은 로고가
+       오른쪽에, 글 단은 왼쪽 640px 이라 애초에 겹치지 않는다. */
+    .outro { position:relative; z-index:3; padding-top:6vh; }
     @media (min-width:900px){
-      .outro { background:transparent; }
       .outro h3.sec, .outro .card, .outro section > p, .outro #contactLinks { will-change:transform, opacity; }
     }
     /* 아웃트로도 인터뷰와 같은 왼쪽 축에 세운다. 가운데로 모으면 넓은 화면에서
@@ -710,6 +710,9 @@
     // pt 로 환산한 값 — 0.12 + 0.364*0.88. 아웃트로가 올라오기 시작하는
     // 지점은 L-vh 이고 그게 더 뒤라, 그 사이가 로고가 서 있는 구간이 된다.
     var LOGO_DONE = 0.387;
+    // 로고가 다 선 뒤의 화면상 위치(화면 높이 대비). 카메라를 그 시점에
+    // 멈춰두므로 고정값으로 쓸 수 있다 — 좁은 화면에서 실측한 값이다.
+    var LOGO_TOP = 0.404, LOGO_BOT = 0.520;
 
     // 각 선의 수렴 순번 — 공 출발점에 가까운 선부터 빨려든다
     function ranks(anchor) {
@@ -986,13 +989,16 @@
       var GA = GATHER_D[cur] || GATHER, UN = UNFOLD_D[cur] || UNFOLD, GS = GSTART_D[cur] || 0;
       var w = pt <= dw ? 0 : (pt-dw)/(1-dw);
 
-      // 카메라: 머무는 동안 아주 느리게 흐르다가 비행에서 옮겨간다
-      var camT = 0.09*pt + 0.91*smoother((pt-dw*0.88)/(1-dw*0.88-0.06));
+      // 카메라: 머무는 동안 아주 느리게 흐르다가 비행에서 옮겨간다.
+      // 착지는 로고가 다 서면 거기서 멈춘다 — 계속 흐르면 로고가 커지면서
+      // 자리가 변해, 카드가 멈춰 설 자리를 미리 잡을 수 없다(107→178px 였다).
+      var cpt = (cur === 'land') ? Math.min(pt, LOGO_DONE) : pt;
+      var camT = 0.09*cpt + 0.91*smoother((cpt-dw*0.88)/(1-dw*0.88-0.06));
       var A = CAM[cur], Bk = CAM[nxt] || A;
       var c = basis(lerp3(A.p,Bk.p,camT), lerp3(A.t,Bk.t,camT));
 
       // 그림이 앉는 자리도 국면 따라 옮긴다. 카메라와 같은 이징이라 같이 흘러간다.
-      var la = layOf(cur), lb = layOf(nxt) || la, ix = WIDE ? 0 : 1;
+      var la = layOf(cur), lb = layOf(nxt) || la, ix = WIDE ? 0 : 1;   // camT 는 위에서 착지에 한해 멈춰 있다
       // 글이 위에 앉으면 1, 아래면 0. 국면 사이에서는 카메라와 같이 흘러간다.
       var ta = la.text === 'top' ? 1 : 0, tb = lb.text === 'top' ? 1 : 0;
       var topness = ta + (tb - ta) * camT;
@@ -1289,14 +1295,32 @@
         // 순간부터 같이 올라가서 여백이 좁혀지는 구간이 아예 없었다.
         // 넓은 화면: 로고는 오른쪽에 서 있고 카드가 왼쪽으로 들어오므로
         // 캔버스를 올리지 않는다 — 기준점만 화면 한 칸으로 둔다.
-        var stop = innerWidth >= 900 ? innerHeight : innerHeight * 0.62;
+        // 카메라를 멈춰둔 덕에 로고 상자가 고정이다 — 모바일 기준
+        // 윗변 0.404H, 아랫변 0.520H(아래 LOGO_TOP/LOGO_BOT).
+        // 카드가 멈춰 설 자리는 '아웃트로 상자'가 아니라 '보이는 첫 줄'을
+        // 기준으로 잡아야 한다. 상자 위에 빈 여백이 105px 있어서, 상자로
+        // 재면 로고와 첫 줄 사이가 156px 씩 벌어진다.
+        var stop = innerHeight;
+        if (innerWidth < 900) {
+          var h1 = outro && outro.querySelector('h3.sec');
+          var head = h1 ? Math.round(h1.getBoundingClientRect().top + scrollY - outroTop) : 0;
+          stop = Math.max(innerHeight*0.30, innerHeight*(LOGO_BOT + 0.07) - head);
+        }
         DOCK = Math.round(outro ? Math.max(done, outroTop - stop) : done);
         // DOCK 은 캔버스가 올라가기 시작하는 지점일 뿐, 멈출 자리가 아니다.
         // 스냅으로 두면 로고만 덩그러니 있는 화면에서 한 번 선다. 착지 장면
         // 에서 아웃트로까지 한 번에 흘러가게 둔다 — 그릇에 들어간 공이 로고로
         // 바뀌고 그대로 카드가 따라 올라온다.
       }
-      if (outro) SNAP.push(outroTop);
+      // 마지막으로 앉는 자리. 카드만 있는 화면이 아니라 '위에 로고, 바로
+      // 밑에 카드'인 화면이어야 한다. 좁은 화면은 로고가 위로 밀려 올라간
+      // 뒤 카드가 화면 26% 높이에서 시작하는 지점을 잡는다. 넓은 화면은
+      // 로고가 오른쪽에 붙박이라 아웃트로 첫머리가 곧 그 화면이다.
+      // 마지막으로 앉는 자리는 '위에 로고, 바로 밑에 카드'인 화면이다.
+      // 좁은 화면: 로고 윗변이 화면 위 0.05H 로 올라올 만큼만 더 굴린다.
+      // 넓은 화면: 로고가 오른쪽에 붙박이라 아웃트로 첫머리가 곧 그 화면이다.
+      if (outro) SNAP.push(innerWidth >= 900 ? outroTop
+                                             : Math.round(DOCK + innerHeight*(LOGO_TOP - 0.05)));
       SNAP.sort(function(a,b){ return a-b; });
     }
 
