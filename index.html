@@ -215,7 +215,10 @@
     /* 아웃트로도 인터뷰와 같은 왼쪽 축에 세운다. 가운데로 모으면 넓은 화면에서
        글이 274px 오른쪽으로 순간이동해, 일곱 장면을 따라오던 시선이 끊긴다. */
     .wrap { margin:0; padding:0 max(22px,6vw); }
+    /* 640px 고정이면 900~1280px 에서 오른쪽에 로고(202px)가 들어설 자리가 안
+       남아 글 위에 올라탄다. 화면 폭에 물려 로고 자리를 항상 비워둔다. */
     .outro section > * { max-width:640px; }
+    @media (min-width:900px){ .outro section > * { max-width:min(640px, 52vw); } }
     .outro section { min-height:0; padding:46px 0; display:block; }
     .outro h3.sec { font-size:.74rem; font-weight:800; letter-spacing:.2em; color:var(--brown);
                     text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:24px; }
@@ -746,6 +749,7 @@
     var GUTTER = 0.34;   // 좁은 화면에서 그림에게 떼어주는 띠의 기본값 (CSS padding 과 맞춘다)
     var BAND0 = 0, BAND1 = 0;
     var TB0 = 0, TB1 = 0, TBX = 0;   // 넓은 화면에서 글 블록이 실제로 차지한 자리
+    var OUTROTOP = 0;                // 아웃트로 시작 지점 — measure 에서 채운다
     var SOLIDX = 0;                  // 지우개가 완전히 비우는 오른쪽 끝
     // 국면 i 의 글 블록 상자. 못 재면 화면 한가운데를 넉넉히 잡는다.
     // 오른쪽 끝까지 재야 한다 — 글 폭보다 좁게 지우면 문단 위로 선이 지나간다.
@@ -841,6 +845,10 @@
     var LOGO_AT = [-3.2, 0.95, 11];    // 밥그릇 자리 — resize 에서 화면 폭에 맞춰 조정
     // 로고 도형의 무게중심은 앵커에서 조금 비켜 있다. 가운데에 앉히려면 그만큼 되민다.
     var LOGO_DX = 29, LOGO_DY = -31;
+    // CX 는 로고의 가운데가 아니라 오른쪽 끝에 가깝다 (그릇 앵커 기준).
+    // 남은 자리 한가운데에 잉크를 놓으려면 로고 반폭만큼 더 밀어야 한다.
+    var LOGO_DXW = 101;
+    var OUTP = 0;                    // 아웃트로가 들어온 정도 0~1 — 루프에서 채운다
     var LOGO_S  = 2.4;
     var LOGO_FILL = { ball:'#ebe8e6', seam:'#d8ac42', bowl:'#b6764a' };
     var LOGO_ORDER = ['ball','seam','bowl'];   // 그릇이 공 앞을 가린다
@@ -1041,6 +1049,16 @@
       if (!WIDE && lw > 0) {
         CX += (W*0.5 + LOGO_DX - CX) * lw;
         CY += (H*0.5 + LOGO_DY - CY) * lw;
+      }
+      // 넓은 화면에서는 카드가 왼쪽으로 들어오는 만큼 로고가 오른쪽으로
+      // 비켜난다. 고정 비율로 두면 1150px 급에서 글 단 위에 올라탄다 —
+      // 글 단은 640px 고정인데 로고 자리는 화면 폭에 비례하기 때문이다.
+      // 남는 자리(글 단 오른쪽)의 한가운데로 보낸다.
+      if (WIDE && lw > 0 && OUTP > 0) {
+        var pad = Math.max(22, W*0.06);
+        var colR = pad + Math.min(640, Math.min(W*0.52, W - pad*2));
+        var want = colR + (W - colR)*0.5 + LOGO_DXW;
+        CX += (want - CX) * lw * OUTP;
       }
 
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -1281,6 +1299,7 @@
       var land = document.querySelector('section[data-phase="land"]');
       SNAP = TOPS.slice();
       var outroTop = outro ? absTop(outro) : 0;
+      OUTROTOP = outroTop;
       if (land) {
         var lt = absTop(land), lh = land.offsetHeight;
         var done = lt + lh * LOGO_DONE;           // 로고가 다 서는 자리
@@ -1454,7 +1473,7 @@
     // ── 마지막: 로고를 덮지 않고 함께 올라간다 ──
     // 캔버스는 fixed 라 그대로 두면 아웃트로가 로고 위를 덮고 올라온다.
     // 로고가 다 선 뒤에는 캔버스를 스크롤과 같은 양만큼 밀어올려 함께 흘러가게 한다.
-    var docked = false;
+    var docked = false, drawnOutp = -1;
     var need = true;
 
     // ── 넓은 화면: 카드가 왼쪽에서 밀려 들어온다 ──
@@ -1512,6 +1531,8 @@
       if (need) {
         need = false;
         var over = viewY - DOCK;
+        // 아웃트로가 화면에 들어온 정도. 로고가 오른쪽으로 비켜나는 데 쓴다.
+        OUTP = OUTROTOP ? cl01((viewY - (OUTROTOP - H)) / (H*0.75)) : 0;
         if (over > 0) {
           // 좁은 화면은 로고가 아웃트로와 같이 올라간다. 넓은 화면은 로고를
           // 오른쪽에 세워두고 왼쪽으로 카드가 들어오므로 밀어올리지 않는다.
@@ -1519,9 +1540,13 @@
           cv.style.opacity = WIDE ? logoFade().toFixed(3) : '';
           // 로고가 선 프레임을 한 번 그려서 고정한다. 안 그리고 얼리면, 도킹 지점
           // 뒤로 바로 들어왔을 때(새로고침·딥링크) 엉뚱한 직전 프레임이 붙박인다.
-          if (!docked) { docked = true; read(DOCK); draw(); }
+          // 넓은 화면에서는 로고가 OUTP 에 맞춰 계속 오른쪽으로 비켜난다.
+          // 한 장 그려 얼려두면 그 움직임이 화면에 나오지 않는다.
+          if (!docked || (WIDE && Math.abs(OUTP - drawnOutp) > 0.002)) {
+            docked = true; drawnOutp = OUTP; read(DOCK); draw();
+          }
         } else {
-          if (docked) { cv.style.transform = ''; cv.style.opacity = ''; docked = false; }
+          if (docked) { cv.style.transform = ''; cv.style.opacity = ''; docked = false; drawnOutp = -1; }
           read(viewY); draw();
         }
         if (WIDE) slideIn();
