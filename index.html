@@ -1345,7 +1345,7 @@
 
     var gliding = false, glideRAF = 0;
     function stopGlide(){ gliding = false; if (glideRAF) cancelAnimationFrame(glideRAF); glideRAF = 0; }
-    function glide(to) {
+    function glide(to, v0) {
       to = Math.max(0, Math.min(to, document.body.scrollHeight - innerHeight));
       var from = scrollY, d = to - from;
       if (Math.abs(d) < 2) return;
@@ -1353,12 +1353,25 @@
       // 상한 3200ms 이면 착지→아웃트로(2.5 화면)가 상한에 걸려, 거리가 늘수록
       // 오히려 빨라진다. 로고가 서 있는 시간이 그만큼 깎여서 상한을 올렸다.
       var dur = cl(Math.abs(d)/innerHeight * 2150, 1150, 4400), t0 = performance.now();
+      // ── 속도 이음새 ──
+      // v0 는 손가락(또는 휠)이 놓인 순간의 속도다(px/ms). 이것을 글라이드의
+      // 시작 속도로 쓰면, 손가락→글라이드 전환에 속도가 한번 0으로 떨어졌다
+      // 다시 올라가는 "버벅"이 사라진다.
+      // 큐빅 에르미트 h(t) = (m0−2)t³ + (3−2m0)t² + m0·t
+      //   h(0)=0, h(1)=1, h'(0)=m0, h'(1)=0
+      // m0 = v0·dur/d 로 정규화. 3 이하여야 단조증가한다(오버슈트 없음).
+      // 방향이 같을 때만 — 손가락이 반대로 가고 있었으면 표준 이징으로 간다.
+      var m0 = 0;
+      if (v0 && d && (v0 > 0) === (d > 0)) m0 = cl(Math.abs(v0) * dur / Math.abs(d), 0, 3);
       gliding = true;
       glideRAF = requestAnimationFrame(function step(now){
         var k = cl01((now - t0)/dur);
-        // 3차 이징은 가운데를 너무 빨리 지나간다. 모션을 보여주는 게 목적이라
-        // 2차로 낮춰 중간 속도를 고르게 한다.
-        var e = k < 0.5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
+        var e;
+        if (m0 > 0.05) {
+          e = (m0 - 2)*k*k*k + (3 - 2*m0)*k*k + m0*k;
+        } else {
+          e = k < 0.5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
+        }
         scrollTo(0, Math.round(from + d*e));
         if (k < 1) glideRAF = requestAnimationFrame(step);
         else { gliding = false; glideRAF = 0; prevY = scrollY; gestureFrom = null; }
@@ -1432,7 +1445,7 @@
       var dir = Math.abs(tV) > VFLICK ? (tV > 0 ? 1 : -1)
               : (Math.abs(moved) > FLICK ? (moved > 0 ? 1 : -1) : 0);
       if (dir && t === i0) t = i0 + dir;               // 아직 못 넘겼으면 밀어준다
-      glide(SNAP[Math.max(0, Math.min(SNAP.length-1, t))]);
+      glide(SNAP[Math.max(0, Math.min(SNAP.length-1, t))], tV);
     }, { passive:true });
     addEventListener('touchcancel', function(){ tDown = false; }, { passive:true });
 
