@@ -30,10 +30,7 @@
       --mark:#A87C00;              /* 강조 — 브랜드 노랑을 진하게 내린 색 */
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    /* proximity 는 스냅 지점 근처에서만 끌어당긴다. mandatory 처럼 전환
-       속도를 브라우저가 정해버리지 않아, 공 궤적이 보일 시간이 남고,
-       281vh 짜리 착지 구간에서도 자유 스크롤이 유지된다. */
-    html { scroll-behavior:auto; scroll-snap-type:y proximity; }
+    html { scroll-behavior:auto; scroll-snap-type:y mandatory; }
     body {
       font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,Roboto,
                   "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
@@ -134,9 +131,7 @@
        갈아끼우기를 100px 까지 줄였더니 이번엔 로고가 튀어나오고 눈에
        들어오기도 전에 올라가 버렸다. 서 있는 구간은 스냅이 아니라
        그냥 스크롤 거리다 — 멈추지 않고 흘러가되 로고가 머문다. */
-    /* 착지는 긴 자유 스크롤 구간이다. 공 궤적 → 로고 → 아웃트로가 스크롤을
-       따라 재생된다. snap-align 을 끄면 proximity 가 개입하지 않는다. */
-    section[data-phase="land"] { min-height:281vh; scroll-snap-align:none; }
+    section[data-phase="land"] { min-height:281vh; }
     /* 두 화면짜리 섹션을 가운데 정렬하면 글이 한 화면 아래로 내려간다.
        넓은 화면에서는 이 장면에 멈춰도 마지막 말이 한 글자도 안 보였다.
        글은 첫 화면에 두고, 로고는 그 아래 한 화면을 통째로 쓴다. */
@@ -1355,7 +1350,7 @@
       gliding = false;
       if (glideRAF) cancelAnimationFrame(glideRAF);
       glideRAF = 0;
-      setSnap(scrollY <= lastSnap() + 4);              // 풀었던 스냅을 되돌린다
+      setSnap(inSnapZone(scrollY));
     }
     function glide(to) {
       to = Math.max(0, Math.min(to, document.body.scrollHeight - innerHeight));
@@ -1371,7 +1366,7 @@
         var e = k < 0.5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
         scrollTo(0, Math.round(from + d*e));
         if (k < 1) glideRAF = requestAnimationFrame(step);
-        else { gliding = false; glideRAF = 0; setSnap(scrollY <= lastSnap() + 4); }
+        else { gliding = false; glideRAF = 0; setSnap(inSnapZone(scrollY)); }
       });
     }
     function lastSnap(){ return SNAP[SNAP.length-1]; }
@@ -1391,17 +1386,22 @@
       snapOff = !on;
       document.documentElement.style.scrollSnapType = on ? '' : 'none';
     }
+    function inSnapZone(y) {
+      if (TOPS.length >= 7 && y >= TOPS[TOPS.length - 1]) return false;
+      if (y > lastSnap() + 4) return false;
+      return true;
+    }
     function onScroll() {
       mark();
-      if (!reduced && !gliding) setSnap(scrollY <= lastSnap() + 4);
+      if (!reduced && !gliding) setSnap(inSnapZone(scrollY));
     }
     // 사용자가 다시 손을 대면 진행 중인 글라이드는 즉시 놓아준다
     function interrupt(){ if (gliding) stopGlide(); }
 
     // ── 터치: 착지 구간만 JS로 앉힌다 ──
-    // 나머지 장면은 CSS scroll-snap proximity 가 처리한다. 착지 구간은
-    // scroll-snap-align:none 이라 proximity 가 개입하지 않으므로 로고가
-    // 다 선 뒤(DOCK 이후)에 손을 떼면 아웃트로로 앉혀야 한다.
+    // 나머지 장면은 CSS scroll-snap mandatory 가 처리한다. 착지 구간은
+    // scroll-snap-align:none 이라 mandatory 가 개입하지 않으므로 로고가
+    // 다 선 뒤(DOCK 이후)에 손을 떼면 아웃트로로 앉힌다.
     var tDown = false;
     addEventListener('touchstart', function(){
       interrupt(); tDown = true;
