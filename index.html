@@ -1338,8 +1338,12 @@
       // 마지막으로 앉는 자리는 '위에 로고, 바로 밑에 카드'인 화면이다.
       // 좁은 화면: 로고 윗변이 화면 위 0.05H 로 올라올 만큼만 더 굴린다.
       // 넓은 화면: 로고가 오른쪽에 붙박이라 아웃트로 첫머리가 곧 그 화면이다.
-      if (outro) SNAP.push(innerWidth >= 900 ? outroTop
-                                             : Math.round(DOCK + innerHeight*(LOGO_TOP - 0.05)));
+      if (outro) {
+        var snapY = innerWidth >= 900 ? outroTop
+                                      : Math.round(DOCK + innerHeight*(LOGO_TOP - 0.05));
+        outro.style.scrollMarginTop = Math.max(0, outroTop - snapY) + 'px';
+        SNAP.push(snapY);
+      }
       SNAP.sort(function(a,b){ return a-b; });
     }
 
@@ -1359,7 +1363,7 @@
       // 글라이드가 scrollTo 로 매 프레임 위치를 잡는 동안 CSS snap 이 끼어들면
       // 목적지가 달라져 덜덜거린다. 글라이드 구간에서만 끈다.
       setSnap(false);
-      var dur = cl(Math.abs(d)/innerHeight * 2150, 1150, 4400), t0 = performance.now();
+      var dur = cl(Math.abs(d)/innerHeight * 1800, 900, 3200), t0 = performance.now();
       gliding = true;
       glideRAF = requestAnimationFrame(function step(now){
         var k = cl01((now - t0)/dur);
@@ -1387,9 +1391,7 @@
       document.documentElement.style.scrollSnapType = on ? '' : 'none';
     }
     function inSnapZone(y) {
-      if (TOPS.length >= 7 && y >= TOPS[TOPS.length - 1]) return false;
-      if (y > lastSnap() + 4) return false;
-      return true;
+      return y <= lastSnap() + 4;
     }
     function onScroll() {
       mark();
@@ -1398,10 +1400,10 @@
     // 사용자가 다시 손을 대면 진행 중인 글라이드는 즉시 놓아준다
     function interrupt(){ if (gliding) stopGlide(); }
 
-    // ── 터치: 착지 구간만 JS로 앉힌다 ──
-    // 나머지 장면은 CSS scroll-snap mandatory 가 처리한다. 착지 구간은
-    // scroll-snap-align:none 이라 mandatory 가 개입하지 않으므로 로고가
-    // 다 선 뒤(DOCK 이후)에 손을 떼면 아웃트로로 앉힌다.
+    // ── 터치: 착지 궤적을 mandatory 스타일로 앉힌다 ──
+    // hero→spike 는 CSS mandatory 가 처리한다. 착지 궤적(281vh)은
+    // 그 안에 snap target 이 없어 mandatory 가 먼 아웃트로까지 점프할 수 있다.
+    // 대신 손을 떼는 순간 JS 가 아웃트로 스냅으로 글라이드해 궤적을 재생한다.
     var tDown = false;
     addEventListener('touchstart', function(){
       interrupt(); tDown = true;
@@ -1410,8 +1412,8 @@
       if (!tDown) return; tDown = false;
       if (reduced || gliding) return;
       var y = scrollY;
-      // DOCK 을 넘은 상태에서 놓으면 아웃트로 스냅으로 앉힌다
-      if (y > DOCK && y <= lastSnap() + 4) {
+      var landTop = TOPS.length >= 7 ? TOPS[TOPS.length - 1] : Infinity;
+      if (y > landTop + innerHeight * 0.4 && y <= lastSnap() + 4) {
         glide(SNAP[SNAP.length - 1]);
       }
     }, { passive:true });
