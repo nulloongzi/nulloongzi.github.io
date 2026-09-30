@@ -7,7 +7,7 @@
 
 - **https://nulloongzi.com 라이브.** 이 레포 main → `Deploy static content to Pages` 워크플로(Actions)로 자동 배포. Enforce HTTPS 켜짐.
 - `index.html` 단일 페이지, 바닐라 JS(빌드 없음). 섹션: 히어로 / 소개 / 프로젝트(누룽지도·AI심판) / 연락 / 푸터. KO/EN 토글은 `data-ko`/`data-en` 속성 방식.
-- 디자인 토큰은 누룽지도와 공유: 옐로 `#fac710` · 브라운 `#8d6e63` · 다크 `#4e342e` · 크림 `#fff8e1`, Pretendard. (근거: 웹 레포 `css/main.css`, `docs/design-system.md`)
+- 디자인 토큰은 누룽지도와 공유: 옐로 `#fac710` · 브라운 `#8d6e63` · 다크 `#4e342e` · 크림 `#fff8e1`, Pretendard. (근거: 웹 레포 `docs/design-system.md` — 웹·앱·이 사이트가 함께 따르는 유일한 원본. 값의 구현은 웹 `css/main.css :root`)
 - 톤 근거는 웹 레포 `docs/PHILOSOPHY.md` — "누룽지에게 DM하는 느낌", 따뜻함, 개인 브랜드가 뿌리.
 
 ## 채워야 할 플레이스홀더 (사용자에게 물어볼 것)
