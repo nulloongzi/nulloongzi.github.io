@@ -12,7 +12,7 @@
 
 ## 채워야 할 플레이스홀더 (사용자에게 물어볼 것)
 
-1. ~~**인스타 핸들**~~ ✅ 채움 (2026-08-05, `null_oongzi`) — 연락 섹션 표시됨.
+1. ~~**인스타 핸들**~~ ✅ 채움 (2026-08-05, `null_oongzi`) — 연락 섹션 표시됨. 2026-09-29: 틱톡(`@null_oongzi`) 추가, 링크트리는 폐기돼 뺐다(인스타 프로필 링크 = nulloongzi.com).
 2. **프로필 사진** — 지금은 🏐 이모지 원형(`.avatar`). 실사진으로 교체 시 `<img>`로.
 3. 이메일(`CONTACT.email`) — `hello@nulloongzi.com`을 쓰려면 Cloudflare Email Routing(무료) 설정 필요.
 
@@ -24,6 +24,7 @@
 | `.well-known/assetlinks.json` | 앱 App Links 검증용 (지문은 웹 레포 사본과 동일해야 함) |
 | Settings → Pages의 **Custom domain** | 지웠다 다시 넣는 행위 금지. 2026-08-04~05에 "제거 후에도 GitHub 엣지에 301 잔존 → 지도 전체 접속 불가" 장애를 겪었다. 상세: 웹 레포 `docs/handoff-custom-domain.md` |
 | `.github/workflows/static.yml` | 전체 레포를 그대로 Pages에 올린다. 빌드 도구 도입 시 이 전제가 깨지니 신중히. |
+| 누룽지도 링크의 `utm_source=nulloongzi.com&utm_medium=hub` (Play 링크는 `referrer=` 안에) | 이 사이트엔 GA가 없다. 인스타 프로필 → 여기 → 지도로 오는 사람을 지도 쪽 GA가 `nulloongzi.com / hub` 로 센다(2026-09-29, 웹 레포 `docs/metrics.md`). 링크를 새로 달 때도 붙일 것. |
 
 - 서브도메인 구조: apex = 이 사이트, `do.nulloongzi.com` = 지도(웹 레포 소유), 새 프로젝트는 서브도메인 추가(Cloudflare CNAME `nulloongzi.github.io` + 해당 레포 CNAME 파일). **이 레포에 다른 프로젝트 경로를 만들지 말 것** — 스텁(`null_oongzi-do/`)은 유일한 예외.
 
