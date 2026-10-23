@@ -45,3 +45,5 @@
 
 - 웹 레포 `docs/handoff-custom-domain.md` — 도메인 구조·콘솔 등록·사고 전체 기록
 - 웹 레포 `docs/PHILOSOPHY.md` / `docs/design-system.md` — 톤과 시각 언어
+
+- 2026-10-23 랠리의 공·그릇을 누룽지도 로고 부품으로 교체 — 공은 `nulloongzido-ball.svg` 의 물결 윤곽·이음선 가운데 줄을 뽑아 화면을 향하는 판(빌보드)으로 그리고(판 안에서 굴러간 만큼 돌다가 착지하며 로고 자세로 선다), 그릇은 `nulloongzido-bowl.svg` 옆모습 단면을 돌려 만든 3D 선 그릇. 선만 쓰는 원칙·카메라·궤적·로고 자리 값은 그대로.
