@@ -38,7 +38,7 @@
 
 - AI 심판 프로젝트 카드 구체화 (지금은 "준비 중" 배지만)
 - 누룽지도 실적 노출(클럽 수·픽업 크루 수 등) — 단, PHILOSOPHY 가치필터 #1(랭킹·위상 금지)에 걸리지 않는 방식으로
-- ~~OG 이미지, 파비콘 정식화~~ ✅ 완료 (2026-08-05) — `assets/`에 OG 1200×630 + 파비콘 4종(32/96/192/apple-touch 180). 로고 원본은 앱 레포 `assets/nulloongzido logo_without bg.png`, OG는 크림 배경 + Pretendard로 HTML→스크린샷 방식 제작.
+- ~~OG 이미지, 파비콘 정식화~~ ✅ 완료 (2026-08-05) — `assets/`에 OG 1200×630 + 파비콘 4종(32/96/192/apple-touch 180). 로고 원본은 앱 레포 `assets/nulloongzido logo_without bg.png`, OG는 크림 배경 + Pretendard로 HTML→스크린샷 방식 제작. 2026-10-23 새 로고(이음선 조각이 고른 배구공)로 교체 — OG 원본 HTML은 `docs/og/og.html`(앱 레포의 Pretendard·로고 PNG를 옆에 두고 크롬 `--screenshot --window-size=1200,630`), 랠리 끝 로고 윤곽(`index.html` 의 `LOGO`)도 새 로고 PNG 에서 다시 뽑음.
 - 인스타 피드/릴스 임베드 — 웹 레포 `js/insta-embed.js`에 선례 있음
 
 ## 관련 문서
